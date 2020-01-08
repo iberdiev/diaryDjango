@@ -3,14 +3,15 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models.signals import post_save, pre_save
 
-
-# Create your models here.
 class CustomUser(AbstractUser):
     db = 'default'
     name = models.CharField(blank=True, max_length=255)
     password = models.CharField(max_length=100)
     user_role = models.IntegerField()
+    created_date = models.DateTimeField('date_created', auto_now_add = True, null=True)
+
     def __str__(self):
         return self.username
 
@@ -27,6 +28,7 @@ class Student(models.Model):
     db = 'default'
     studentName = models.CharField(max_length = 100)
     cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='students')
+    parent = models.ForeignKey(CustomUser, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.studentName
@@ -38,8 +40,18 @@ class Teacher(models.Model):
     schoolID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='teachers')
     teacherID = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainTeacher')
 
+    def save_model(self, request, obj, form, change):
+        obj.schoolID = request.user
+        super().save_model(request, obj, form, change)
+
     def __str__(self):
         return self.teacherName
+
+    # def save_post(sender, instance, **kwargs):
+    #     school.
+    #     teacher = Teacher(teacherName=instance.name,schoolID=)
+    #     print(instance.name)
+    # post_save.connect(save_post, sender=CustomUser)
 
 class Subject(models.Model):
     db = 'default'
@@ -54,15 +66,26 @@ class regularGrade(models.Model):
     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='regularGrades')
     studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
     pub_date = models.DateTimeField('date_published', auto_now_add = True)
+    teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
     mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
-    COMMENT_CHOICES = (
-        (1, 'Контрольная работа'),
-        (2, 'Классная работа'),
-        (3, 'Устный зачёт'),
-        (4, 'Домашняя работа'),
-        (5, 'Неизвестно'),
+    TYPE_CHOICES = (
+        (1, 'Первая четверть'),
+        (2, 'Вторая четверть'),
+        (3, 'Третья четверть'),
+        (4, 'Четвертая четверть'),
+        (5, 'Итог'),
+        (6, 'Повседневная оценка'),
     )
-    comment = models.PositiveSmallIntegerField(choices=COMMENT_CHOICES, default=5)
+    type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=6)
+
+class Timetable(models.Model):
+    db = 'default'
+    subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    cohortID = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='timetable')
+    date = models.DateField(null=True)
+    startTime = models.TimeField(null=True)
+    endTime = models.TimeField(null=True)
+    homework = models.CharField(max_length = 100, default='')
 
 class JkitepSchools(models.Model):
     db = 'test'

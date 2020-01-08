@@ -143,3 +143,19 @@ class RegularGradesListView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TimetableByCohortView(APIView):
+    def get(self, request):
+        cohortID = self.request.query_params.get('cohortID')
+        cohort = models.Cohort.objects.get(pk=cohortID)
+        data = serializers.TimetableSerializer(cohort.timetable, many=True).data
+        return Response(data)
+# curl -i -H "Accept: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/?cohortID=17
+
+    def post(self, request, format=None):
+        serializer = serializers.TimetableSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# curl -d '{"cohortID": 17, "subjectID": 22, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/

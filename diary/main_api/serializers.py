@@ -27,7 +27,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 class RegularGradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.regularGrade
-        fields = ('mark','pub_date','comment','studentID','subjectID',)
+        fields = ('mark','pub_date','studentID','subjectID',)
 
 class SubjectCohortSerializer(serializers.ModelSerializer):
     cohortName = serializers.SerializerMethodField(read_only=True)
@@ -56,6 +56,11 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
         fields = ('studentName','pk',)
+
+class TimetableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Timetable
+        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework',)
 
 class JkitepSchoolsSerializer(serializers.ModelSerializer):
     class Meta:

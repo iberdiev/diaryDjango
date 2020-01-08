@@ -16,5 +16,5 @@ urlpatterns = [
     path('givenSubjectsOfTeacher/', views.givenSubjectsOfTeacher.as_view()),
     path('givenSubjectsOfTeacherStudentListView/', views.GivenSubjectStudentListView.as_view()),
     path('regularGrades/', views.RegularGradesListView.as_view()),
-
+    path('timetableByCohort/', views.TimetableByCohortView.as_view()),
 ]
