@@ -22,6 +22,15 @@ class ChangeTeacherOfSubject(APIView):
         return Response("Done")
 
 @permission_classes((IsAuthenticated, ))
+class getTheChild(APIView):
+    def get(self,request, format=None):
+        # studentID = models.CustomUser.objects.get(pk=self.request.user).name
+        child = models.CustomUser.objects.get(pk=self.request.user.pk).child
+        data = serializers.StudentSerializer(child, many=True).data
+        return Response(data)
+
+
+@permission_classes((IsAuthenticated, ))
 class SubjectsListView(APIView):
     def get(self,request):
         cohort = self.request.query_params.get('cohort')
@@ -72,9 +81,9 @@ class StudentsListView(APIView):
 class CohortsView(APIView):
     def get(self, request):
         # token = Token.objects.get(key=response.data['token'])
-        my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        user_id = Token.objects.get(key=my_token).user_id
-        cohorts = models.Cohort.objects.filter(school_creator=user_id)
+        # my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
+        # user_id = Token.objects.get(key=my_token).user_id
+        cohorts = models.Cohort.objects.filter(school_creator=request.user)
         data = serializers.CohortSerializer(cohorts, many=True).data
         return Response(data)
 
@@ -101,10 +110,10 @@ class CustomLoginView(ObtainAuthToken):
 @permission_classes((IsAuthenticated, ))
 class MainCohortList(APIView):
     def get(self, request):
-        my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        user_id = Token.objects.get(key=my_token).user_id
-        username = CustomUser.objects.get(pk=user_id).username
-        cohorts = models.CustomUser.objects.get(username=username).mainCohorts
+        # my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
+        # user_id = Token.objects.get(key=my_token).user_id
+        # username = CustomUser.objects.get(pk=user_id).username
+        cohorts = models.CustomUser.objects.get(username=request.user.username).mainCohorts
         data = serializers.CohortSerializer(cohorts, many=True).data
         return Response(data)
 
@@ -112,12 +121,24 @@ class MainCohortList(APIView):
 @permission_classes((IsAuthenticated, ))
 class givenSubjectsOfTeacher(APIView):
     def get(self, request):
-        my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        user_id = Token.objects.get(key=my_token).user_id
-        username = CustomUser.objects.get(pk=user_id).username
-        subjects = models.CustomUser.objects.get(username=username).mainTeacher.subjects
+        # my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
+        # user_id = Token.objects.get(key=my_token).user_id
+        # username = CustomUser.objects.get(pk=user_id).username
+        subjects = models.CustomUser.objects.get(username=request.user.username).mainTeacher.subjects
         data = serializers.SubjectCohortSerializer(subjects, many=True).data
         return Response(data)
+
+# @permission_classes((IsAuthenticated, ))
+# class CohortsRelatedToTeacher(APIView):
+#     def get(self, request):
+#         # my_token = request.META.get('HTTP_AUTHORIZATION').split()[1]
+#         # user_id = Token.objects.get(key=my_token).user_id
+#         # username = CustomUser.objects.get(pk=user_id).username
+#         subjects = models.Teacher.objects.get(teacherID=request.user).subjects
+#         print(subjects)
+#         # subjects = models.CustomUser.objects.get(username=request.user.username).mainTeacher.subjects
+#         data = serializers.SubjectCohortSerializer(subjects, many=True).data
+#         return Response(data)
 
 @permission_classes((IsAuthenticated, ))
 class GivenSubjectStudentListView(APIView):
@@ -128,14 +149,15 @@ class GivenSubjectStudentListView(APIView):
         data = serializers.StudentSerializer(students, many=True).data
         return Response(data)
 
-@permission_classes((IsAuthenticated, ))
+# @permission_classes((IsAuthenticated, ))
 class RegularGradesListView(APIView):
     def get(self, request):
-        subject = self.request.query_params.get('subjectID')
+        date = self.request.query_params.get('date')
         student = self.request.query_params.get('studentID')
-        grades = models.regularGrade.objects.filter(subjectID = subject, studentID = student)
+        grades = models.regularGrade.objects.filter(studentID = student)
         data = serializers.RegularGradeSerializer(grades, many=True).data
         return Response(data)
+# http://127.0.0.1:8080/api/v1/regularGrades/?date=2020-01-12&studentID=22
 
     def post(self, request, format=None):
         serializer = serializers.RegularGradeSerializer(data=request.data)
@@ -144,12 +166,26 @@ class RegularGradesListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# @permission_classes((IsAuthenticated, ))
 class TimetableByCohortView(APIView):
     def get(self, request):
         cohortID = self.request.query_params.get('cohortID')
-        cohort = models.Cohort.objects.get(pk=cohortID)
-        data = serializers.TimetableSerializer(cohort.timetable, many=True).data
+        date = self.request.query_params.get("date")
+        student = self.request.query_params.get('studentID')
+        timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date)
+        data = serializers.TimetableSerializer(timetables, many=True, context={"studentID": student}).data
         return Response(data)
+
+
+# class TimetableByCohortView(APIView):
+#     def get(self, request):
+#         cohortID = self.request.query_params.get('cohortID')
+#         date = self.request.query_params.get("date")
+#         timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date)
+#         data = serializers.TimetableSerializer(timetables, many=True).data
+#         return Response(data)
+
+# http://127.0.0.1:8080/api/v1/timetableByCohort/?cohortID=3&date=2020-01-12
 # curl -i -H "Accept: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/?cohortID=17
 
     def post(self, request, format=None):
@@ -158,4 +194,12 @@ class TimetableByCohortView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# curl -d '{"cohortID": 17, "subjectID": 22, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/
+# curl -d '{"teacher":2, "cohortID": 17, "subjectID": 22, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/
+
+class TimetableByTeacherView(APIView):
+    def get(self, request):
+        teacherID = self.request.query_params.get('teacherID')
+        teacher = models.Teacher.objects.get(pk=teacherID).timetable
+        # teacher = models.Teacher.objects.get(pk=teacherID).timetable.filter(date="2020-01-08")
+        data = serializers.TimetableSerializer(teacher, many=True).data
+        return Response(data)

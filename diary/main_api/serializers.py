@@ -24,10 +24,27 @@ class CustomRegisterSerializer(RegisterSerializer):
         data_dict['user_role'] = self.validated_data.get('user_role', '')
         return data_dict
 
+
+class FilteredRegularGradeListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        data = data.filter(studentID=self.context["studentID"])
+        return super(FilteredRegularGradeListSerializer, self).to_representation(data)
+
+class FilteredRegularGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.regularGrade
+        fields = ('mark','studentID','lesson',)
+        list_serializer_class = FilteredRegularGradeListSerializer
+
 class RegularGradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.regularGrade
-        fields = ('mark','pub_date','studentID','subjectID',)
+        fields = ('mark','studentID','lesson',)
+
+
+
+
 
 class SubjectCohortSerializer(serializers.ModelSerializer):
     cohortName = serializers.SerializerMethodField(read_only=True)
@@ -40,7 +57,8 @@ class SubjectCohortSerializer(serializers.ModelSerializer):
 class CohortSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Cohort
-        fields = ('class_name','pk',)
+        fields = ('class_name','pk', 'mainTeacherID',)
+        depth = 1
 
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,18 +69,26 @@ class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Subject
         fields = ('subjectName', 'teacherID', 'pk',)
+        depth = 1
 
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
         fields = ('studentName','pk',)
 
+
 class TimetableSerializer(serializers.ModelSerializer):
+    subjectName = serializers.SerializerMethodField(read_only=True)
+    regularGrades = FilteredRegularGradeSerializer(many=True)
+
     class Meta:
         model = models.Timetable
-        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework',)
+        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName', 'regularGrades',)
+    def get_subjectName(self, timetable):
+        return timetable.subjectID.subjectName
+
 
 class JkitepSchoolsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.JkitepSchools
-        fields = ('schoolsid', 'type_ownership', 'name', 'school_code' )
+        fields = ('schoolsid', 'type_ownership', 'name', 'school_code',)

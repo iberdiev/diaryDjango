@@ -25,7 +25,6 @@ from main_api import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('main_api.urls')),
-    path('', include("main_api.urls")),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
 

@@ -16,7 +16,7 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
     fieldsets = (
-        (('CustomUser'), {'fields': ('user_role', )}),
+        (('CustomUser'), {'fields': ('user_role', 'name')}),
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)

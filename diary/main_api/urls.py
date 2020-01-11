@@ -17,4 +17,9 @@ urlpatterns = [
     path('givenSubjectsOfTeacherStudentListView/', views.GivenSubjectStudentListView.as_view()),
     path('regularGrades/', views.RegularGradesListView.as_view()),
     path('timetableByCohort/', views.TimetableByCohortView.as_view()),
+    path('timetableByTeacher/', views.TimetableByTeacherView.as_view()),
+    # path('cohortsRelatedToTeacher/', views.CohortsRelatedToTeacher.as_view()),
+
+
+    path('getTheChild/', views.getTheChild.as_view()),
 ]

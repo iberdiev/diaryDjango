@@ -15,10 +15,24 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+class Teacher(models.Model):
+    db = 'default'
+    teacherName = models.CharField(max_length = 100)
+    schoolID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='teachers')
+    teacherID = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainTeacher')
+
+    # def save_model(self, request, obj, form, change):
+    #     obj.schoolID = request.user
+    #     super().save_model(request, obj, form, change)
+
+    def __str__(self):
+        return self.teacherName
+
+
 class Cohort(models.Model):
     db = 'default'
     school_creator = models.ForeignKey(CustomUser, on_delete = models.CASCADE, related_name='cohorts')
-    mainTeacherID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainCohorts')
+    mainTeacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, related_name='mainCohorts')
     class_name = models.CharField(max_length = 100)
 
     def __str__(self):
@@ -28,24 +42,21 @@ class Student(models.Model):
     db = 'default'
     studentName = models.CharField(max_length = 100)
     cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='students')
-    parent = models.ForeignKey(CustomUser, null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey(CustomUser, null=True, on_delete=models.CASCADE, related_name='child')
 
     def __str__(self):
         return self.studentName
 
 
-class Teacher(models.Model):
-    db = 'default'
-    teacherName = models.CharField(max_length = 100)
-    schoolID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='teachers')
-    teacherID = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainTeacher')
 
-    def save_model(self, request, obj, form, change):
-        obj.schoolID = request.user
-        super().save_model(request, obj, form, change)
 
-    def __str__(self):
-        return self.teacherName
+
+
+
+
+
+
+
 
     # def save_post(sender, instance, **kwargs):
     #     school.
@@ -61,31 +72,42 @@ class Subject(models.Model):
     def __str__(self):
         return self.subjectName
 
-class regularGrade(models.Model):
-    db = 'default'
-    subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='regularGrades')
-    studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
-    pub_date = models.DateTimeField('date_published', auto_now_add = True)
-    teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
-    mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
-    TYPE_CHOICES = (
-        (1, 'Первая четверть'),
-        (2, 'Вторая четверть'),
-        (3, 'Третья четверть'),
-        (4, 'Четвертая четверть'),
-        (5, 'Итог'),
-        (6, 'Повседневная оценка'),
-    )
-    type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=6)
-
 class Timetable(models.Model):
     db = 'default'
-    subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
     cohortID = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='timetable')
     date = models.DateField(null=True)
     startTime = models.TimeField(null=True)
     endTime = models.TimeField(null=True)
     homework = models.CharField(max_length = 100, default='')
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='timetable', null=True)
+
+
+class regularGrade(models.Model):
+    db = 'default'
+    lesson = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='regularGrades', null=True)
+    studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
+    # date = models.DateField(null=True)
+    teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
+    mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
+
+# class regularGrade(models.Model):
+#     db = 'default'
+#     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='regularGrades')
+#     studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
+#     date = models.DateField(null=True)
+#     teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
+#     mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
+#     TYPE_CHOICES = (
+#         (1, 'Первая четверть'),
+#         (2, 'Вторая четверть'),
+#         (3, 'Третья четверть'),
+#         (4, 'Четвертая четверть'),
+#         (5, 'Итог'),
+#         (6, 'Повседневная оценка'),
+#     )
+#     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=6)
+
 
 class JkitepSchools(models.Model):
     db = 'test'
