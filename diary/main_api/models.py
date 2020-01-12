@@ -11,7 +11,7 @@ class CustomUser(AbstractUser):
     password = models.CharField(max_length=100)
     user_role = models.IntegerField()
     created_date = models.DateTimeField('date_created', auto_now_add = True, null=True)
-
+    phoneNumber = models.CharField(default='', max_length=255)
     def __str__(self):
         return self.username
 
@@ -43,19 +43,9 @@ class Student(models.Model):
     studentName = models.CharField(max_length = 100)
     cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='students')
     parent = models.ForeignKey(CustomUser, null=True, on_delete=models.CASCADE, related_name='child')
-
+    phoneNumber = models.CharField(default='', max_length=255)
     def __str__(self):
         return self.studentName
-
-
-
-
-
-
-
-
-
-
 
 
     # def save_post(sender, instance, **kwargs):

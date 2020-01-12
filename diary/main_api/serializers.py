@@ -42,8 +42,38 @@ class RegularGradeSerializer(serializers.ModelSerializer):
         model = models.regularGrade
         fields = ('mark','studentID','lesson',)
 
+class StudentProfileSerializer(serializers.ModelSerializer):
+    parentName = serializers.SerializerMethodField(read_only=True)
+    parentPhoneNumber = serializers.SerializerMethodField(read_only=True)
+    className = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = models.Student
+        fields = ('studentName','phoneNumber','parentName','parentPhoneNumber','className',)
+    def get_parentName(self, student):
+        return student.parent.name
+    def get_parentPhoneNumber(self, student):
+        return student.parent.phoneNumber
+    def get_className(self, student):
+        return student.cohort.class_name
+
+class UniqueCohortsBySubjectsForTeacherList(serializers.ListSerializer):
+
+    def to_representation(self, data):
+
+        data = data.distinct()
+        return super(UniqueCohortsBySubjectsForTeacherList, self).to_representation(data)
+
+class UniqueCohortsBySubjectsForTeacher(serializers.ModelSerializer):
+    cohortName = serializers.SerializerMethodField(read_only=True)
 
 
+    class Meta:
+        model = models.Subject
+        fields = ('cohortName', 'cohortID',)
+        list_serializer_class = UniqueCohortsBySubjectsForTeacherList
+
+    def get_cohortName(self, subject):
+        return subject.cohortID.class_name
 
 
 class SubjectCohortSerializer(serializers.ModelSerializer):
@@ -74,19 +104,104 @@ class SubjectSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
-        fields = ('studentName','pk',)
+        fields = ('studentName','pk','cohort',)
+#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg
+
+# class RegularGradesBySubjectListSerializer(serializers.ListSerializer):
+#
+#     def to_representation(self, data):
+#         # print(self.context["subjectID"])
+#         # data = data.filter(subjectID=self.context["subjectID"])
+#         data = data
+#         return super(RegularGradesBySubjectListSerializer, self).to_representation(data)
 
 
-class TimetableSerializer(serializers.ModelSerializer):
+class RegularGradesBySubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.regularGrade
+        fields = ('mark', 'lesson',)
+        # list_serializer_class = RegularGradesBySubjectListSerializer
+        depth = 1
+
+class StudentGradesOneSubjectSerializer(serializers.ModelSerializer):
+    regularGrades = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Student
+        fields = ('studentName','pk','cohort','regularGrades',)
+    def get_regularGrades(self, student):
+        grades = models.regularGrade.objects.filter(lesson__subjectID=self.context["subjectID"])
+        serializer = RegularGradesBySubjectSerializer(instance=grades, many=True)
+        return serializer.data
+
+#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg
+
+class TimetableWithOneStudentSerializer(serializers.ModelSerializer):
     subjectName = serializers.SerializerMethodField(read_only=True)
     regularGrades = FilteredRegularGradeSerializer(many=True)
 
     class Meta:
         model = models.Timetable
         fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName', 'regularGrades',)
+
     def get_subjectName(self, timetable):
         return timetable.subjectID.subjectName
 
+class TimetableSerializer(serializers.ModelSerializer):
+    subjectName = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Timetable
+        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName',)
+    def get_subjectName(self, timetable):
+        return timetable.subjectID.subjectName
+
+
+#jhaksldfjiuasdhfoshdfui
+# class RegularGradesForOneCohortBySubjectList(serializers.ListSerializer):
+#
+#     def to_representation(self, data):
+#         data = data.filter(data)
+#         return super(RegularGradesForOneCohortBySubjectList, self).to_representation(data)
+
+
+class RegularGradesForOneCohortBySubject(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Student
+        fields = ('lesson', 'studentID', 'teacherID', 'mark', 'date',)
+        # list_serializer_class = UniqueCohortsBySubjectsForTeacherList
+    def get_date(self, regularGrade):
+        return regularGrade.lesson.date
+
+
+class TimetableForTeacherSerializer(serializers.ModelSerializer):
+    subjectName = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Timetable
+        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName', )
+    def get_subjectName(self, timetable):
+        return timetable.subjectID.subjectName
+
+class FilteredTimetableListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        data = data.filter(date=self.context["date"])
+        return super(FilteredTimetableListSerializer, self).to_representation(data)
+
+class FilteredTimetableSerializer(serializers.ModelSerializer):
+    subjectName = serializers.SerializerMethodField(read_only=True)
+    className = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = models.Timetable
+        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName','className', )
+        list_serializer_class = FilteredTimetableListSerializer
+    def get_subjectName(self, timetable):
+        return timetable.subjectID.subjectName
+    def get_className(self, timetable):
+        return timetable.cohortID.class_name
 
 class JkitepSchoolsSerializer(serializers.ModelSerializer):
     class Meta:

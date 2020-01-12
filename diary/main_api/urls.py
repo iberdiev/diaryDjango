@@ -16,10 +16,19 @@ urlpatterns = [
     path('givenSubjectsOfTeacher/', views.givenSubjectsOfTeacher.as_view()),
     path('givenSubjectsOfTeacherStudentListView/', views.GivenSubjectStudentListView.as_view()),
     path('regularGrades/', views.RegularGradesListView.as_view()),
-    path('timetableByCohort/', views.TimetableByCohortView.as_view()),
+    path('timetableByCohortWithOneStudentsGrades/', views.TimetableByCohortWithOneStudentsGradesView.as_view()),
     path('timetableByTeacher/', views.TimetableByTeacherView.as_view()),
+    path('timetableByCohort/', views.TimetableByCohortView.as_view()),
     # path('cohortsRelatedToTeacher/', views.CohortsRelatedToTeacher.as_view()),
-
-
     path('getTheChild/', views.getTheChild.as_view()),
+    path('getTeacherID/', views.getTeacherID.as_view()),
+    path('getUniqueCohortsByTaught/', views.getUniqueCohortsByTaught.as_view()),
+    path('getStudentProfile/', views.getStudentProfile.as_view()),
+    path('cohortRegularGradesOneSubjectView/', views.CohortRegularGradesOneSubjectView.as_view()),
+    # http://127.0.0.1:8080/api/v1/cohortRegularGradesOneSubjectView/?subjectID=26
+
+
 ]
+
+
+# `http://192.168.0.55:8080/api/v1/timetableByCohort/?studentID=${this.props.location.state.pk}&cohortID=3&date=${this.formatDate(date)}`;
