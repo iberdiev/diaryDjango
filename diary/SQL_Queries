@@ -1,11 +1,5 @@
 Model.objects.raw("__SqlQuery__")
 
-Accounts
-S:
-T:
-P:
-
-
 Getting all schools
 schools = models.JkitepSchools.objects.all()
 
@@ -21,7 +15,6 @@ JkitepContactdetails.objects.raw("SELECT * FROM `jkitep_contactdetails` INNER JO
 
 Student parent relationship
 jkitep_contactdetails.accountid = jkitep_account.accountid
-
 
 Teacher class relationship
 jkitep_crmentity.crmid (класс) - jkitep_crmentity.smownerid (учитель) - jkitep_crmentity.smownerid=jkitep_schoolstaff.employees_id_user

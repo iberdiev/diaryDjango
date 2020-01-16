@@ -3,7 +3,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "diary.settings")
 django.setup()
 from main_api import models
 
-
 ##############################
 # Registering all availabe schools
 
@@ -73,27 +72,38 @@ from main_api import models
 
 #############################
 # Getting and saving all cohorts + attaching them to schools.CustomerUser and teachers.Teacher
-# JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id=7949")
-# school_creator = models.ForeignKey(CustomUser, on_delete = models.CASCADE, related_name='cohorts')
-# mainTeacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, related_name='mainCohorts')
-# class_name = models.CharField(max_length = 100)
+
 # URL = "http://127.0.0.1:8080/api/v1/get_cohorts/"
 # cohorts = models.JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id IS NOT NULL")
 # for cohort in cohorts:
 #     class_name = cohort.label
 #     schoolID = str(cohort.school_id) + "school"
 #     teacherID = str(cohort.smownerid) + "teacher"
-#     print(class_name)
-#     print(schoolID)
-#     print(teacherID)
 #     school_creator = models.CustomUser.objects.get(username=schoolID)
 #     if not models.CustomUser.objects.filter(username=teacherID).exists():
 #         continue
 #     mainTeacherID = models.CustomUser.objects.get(username=teacherID).mainTeacher.pk
 #     data = {"class_name": class_name,
 #             "mainTeacherID": mainTeacherID,
-#             "schoolID": schoolID}
+#             "schoolID": schoolID,
+#             "jkitepClassID": cohort.schoolclassesid}
 #     a = requests.post(url = URL, data = data)
+#     print(a.text)
 
 #############################
-# Getting all students
+# Getting and saving all students + attaching to parents and cohorts
+
+URL = "http://127.0.0.1:8080/api/v1/students/"
+students = models.JkitepContactdetails.objects.raw("SELECT * FROM `jkitep_contactdetails` INNER JOIN jkitep_crmentity on jkitep_contactdetails.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_class_id IS NOT NULL")
+for student in students:
+    print(student.school_class_id)
+    name = "{} {}".format(student.lastname, student.firstname)
+    if not models.Cohort.objects.filter(jkitepClassID=student.school_class_id).exists():
+        continue
+    cohortID = models.Cohort.objects.get(jkitepClassID=student.school_class_id).pk
+    parentID = models.CustomUser.objects.get(username=str(student.accountid)+"parent")
+    data = {"studentName": name,"cohort": cohortID,"parent": parentID}
+    a = requests.post(url = URL, data = data)
+    print(a.text)
+
+#############################

@@ -70,7 +70,7 @@ from rest_auth.registration.views import RegisterView
 class CustomRegisterView(RegisterView):
     queryset = CustomUser.objects.all()
 
-@permission_classes((IsAuthenticated, ))
+# @permission_classes((IsAuthenticated, ))
 class StudentsListView(APIView):
     def get(self, request):
         cohort = self.request.query_params.get('cohort')
@@ -81,7 +81,8 @@ class StudentsListView(APIView):
     def post(self, request, format=None):
         serializer = serializers.StudentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(cohort=models.Cohort.objects.get(pk=request.data['cohort']))
+            serializer.save(cohort=models.Cohort.objects.get(pk=request.data['cohort']),
+                            parent=models.CustomUser.objects.get(username=request.data['parent']))
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -100,7 +101,7 @@ class CohortsView(APIView):
         if serializer.is_valid():
             school = CustomUser.objects.get(username=request.data["schoolID"])
             teacher = models.Teacher.objects.get(pk=request.data["mainTeacherID"])
-            serializer.save(school_creator=school, mainTeacherID=teacher)
+            serializer.save(school_creator=school, mainTeacherID=teacher, jkitepClassID=request.data["jkitepClassID"])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
