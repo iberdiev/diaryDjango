@@ -1,0 +1,36 @@
+Model.objects.raw("__SqlQuery__")
+
+Accounts
+S:
+T:
+P:
+
+
+Getting all schools
+schools = models.JkitepSchools.objects.all()
+
+Getting all staff of specific school by schoolsid
+JkitepSchoolstaff.objects.raw("SELECT * FROM `jkitep_schoolstaff` INNER JOIN jkitep_crmentity on jkitep_schoolstaff.schoolstaffid = jkitep_crmentity.crmid and school_id=7949")
+
+All avaialable cohorts of one school (gets by school_id)
+JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id=7949")
+
+
+All available students of 1 class by school_class_id = 8672
+JkitepContactdetails.objects.raw("SELECT * FROM `jkitep_contactdetails` INNER JOIN jkitep_crmentity on jkitep_contactdetails.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_class_id = 8672")
+
+Student parent relationship
+jkitep_contactdetails.accountid = jkitep_account.accountid
+
+
+Teacher class relationship
+jkitep_crmentity.crmid (класс) - jkitep_crmentity.smownerid (учитель) - jkitep_crmentity.smownerid=jkitep_schoolstaff.employees_id_user
+
+Getting all parents
+models.JkitepAccount.objects.raw("SELECT * FROM `jkitep_account` INNER JOIN jkitep_crmentity on jkitep_account.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0'")
+
+Getting all staff of all schools
+JkitepSchoolstaff.objects.raw("SELECT * FROM `jkitep_schoolstaff` INNER JOIN jkitep_crmentity on jkitep_schoolstaff.schoolstaffid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0'")
+
+s: JkitepSchools.schoolsid + "school"
+t: JkitepSchoolstaff.employees_id_user + "teacher"

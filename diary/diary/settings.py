@@ -155,6 +155,7 @@ REST_FRAMEWORK = {
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'main_api.serializers.CustomRegisterSerializer',
 }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',

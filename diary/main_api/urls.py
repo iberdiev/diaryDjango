@@ -10,7 +10,7 @@ urlpatterns = [
     path('subjects/', views.SubjectsListView.as_view()),
     path('teachers/', views.TeachersListView.as_view()),
     path('changeTeacher/', views.ChangeTeacherOfSubject.as_view()),
-
+    path("registration/", views.UserCreateAPIView.as_view()),
 
     path('mainCohorts/', views.MainCohortList.as_view()),
     path('givenSubjectsOfTeacher/', views.givenSubjectsOfTeacher.as_view()),
@@ -25,10 +25,10 @@ urlpatterns = [
     path('getUniqueCohortsByTaught/', views.getUniqueCohortsByTaught.as_view()),
     path('getStudentProfile/', views.getStudentProfile.as_view()),
     path('cohortRegularGradesOneSubjectView/', views.CohortRegularGradesOneSubjectView.as_view()),
-    # http://127.0.0.1:8080/api/v1/cohortRegularGradesOneSubjectView/?subjectID=26
-
-
-]
+    path('studentSubjectFinalGrades/', views.StudentSubjectFinalGradesView.as_view()),
+    path('cohortSubjectFinalGrades/', views.CohortSubjectFinalGradesView.as_view()),
+    path('studentIDSubjectsRegularFinalGrades/', views.StudentIDSubjectsRegularFinalGradesView.as_view()),
+    ]
 
 
 # `http://192.168.0.55:8080/api/v1/timetableByCohort/?studentID=${this.props.location.state.pk}&cohortID=3&date=${this.formatDate(date)}`;

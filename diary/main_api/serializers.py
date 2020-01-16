@@ -7,13 +7,16 @@ from rest_auth.registration.serializers import RegisterSerializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CustomUser
-        fields = ('email', 'username','user_role')
+        fields = ('email', 'username','user_role', 'name',)
 
-    def create(self, validated_data):
-        user = super(UserSerializer, self).create(validated_data)
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
+    # def create(self, validated_data):
+    #     user = super(UserSerializer, self).create(validated_data)
+    #     user.set_password(validated_data['password'])
+    #     user.save()
+    #     return user
+
+
+
 
 class CustomRegisterSerializer(RegisterSerializer):
 
@@ -22,6 +25,8 @@ class CustomRegisterSerializer(RegisterSerializer):
     def get_cleaned_data(self):
         data_dict = super().get_cleaned_data()
         data_dict['user_role'] = self.validated_data.get('user_role', '')
+        data_dict['password1'] = self.validated_data.get('password1', '')
+        data_dict['password2'] = self.validated_data.get('password2', '')
         return data_dict
 
 
@@ -38,9 +43,12 @@ class FilteredRegularGradeSerializer(serializers.ModelSerializer):
         list_serializer_class = FilteredRegularGradeListSerializer
 
 class RegularGradeSerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = models.regularGrade
-        fields = ('mark','studentID','lesson',)
+        fields = ('mark','lesson',"date",)
+    def get_date(self, grade):
+        return grade.lesson.date
 
 class StudentProfileSerializer(serializers.ModelSerializer):
     parentName = serializers.SerializerMethodField(read_only=True)
@@ -90,6 +98,18 @@ class CohortSerializer(serializers.ModelSerializer):
         fields = ('class_name','pk', 'mainTeacherID',)
         depth = 1
 
+class CohortSerializerOnlyNameAndID(serializers.ModelSerializer):
+    cohortName = serializers.SerializerMethodField(read_only=True)
+    cohortID = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = models.Cohort
+        fields = ('cohortName','cohortID',)
+    def get_cohortName(self, cohort):
+        return cohort.class_name
+    def get_cohortID(self, cohort):
+        return cohort.pk
+
+
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
@@ -107,6 +127,22 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ('studentName','pk','cohort',)
 #33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg#33dfghgfsdfg4wcw45crg
 
+class FinalGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.finalGrade
+        fields = ['type','mark']
+
+class StudentFinalGradesSerializer(serializers.ModelSerializer):
+    finalGrades = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Student
+        fields = ('studentName','pk','cohort','finalGrades',)
+    def get_finalGrades(self, student):
+        grades = models.finalGrade.objects.filter(studentID=student)
+        serializer = FinalGradeSerializer(instance=grades, many=True)
+        return serializer.data
+
 # class RegularGradesBySubjectListSerializer(serializers.ListSerializer):
 #
 #     def to_representation(self, data):
@@ -119,7 +155,7 @@ class StudentSerializer(serializers.ModelSerializer):
 class RegularGradesBySubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.regularGrade
-        fields = ('mark', 'lesson',)
+        fields = ('mark', 'lesson','type',)
         # list_serializer_class = RegularGradesBySubjectListSerializer
         depth = 1
 
@@ -130,7 +166,7 @@ class StudentGradesOneSubjectSerializer(serializers.ModelSerializer):
         model = models.Student
         fields = ('studentName','pk','cohort','regularGrades',)
     def get_regularGrades(self, student):
-        grades = models.regularGrade.objects.filter(lesson__subjectID=self.context["subjectID"])
+        grades = models.regularGrade.objects.filter(lesson__subjectID=self.context["subjectID"], type=6)
         serializer = RegularGradesBySubjectSerializer(instance=grades, many=True)
         return serializer.data
 
@@ -152,7 +188,7 @@ class TimetableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Timetable
-        fields = ('subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName',)
+        fields = ('pk','subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName',)
     def get_subjectName(self, timetable):
         return timetable.subjectID.subjectName
 
@@ -171,7 +207,6 @@ class RegularGradesForOneCohortBySubject(serializers.ModelSerializer):
     class Meta:
         model = models.Student
         fields = ('lesson', 'studentID', 'teacherID', 'mark', 'date',)
-        # list_serializer_class = UniqueCohortsBySubjectsForTeacherList
     def get_date(self, regularGrade):
         return regularGrade.lesson.date
 
@@ -207,3 +242,21 @@ class JkitepSchoolsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.JkitepSchools
         fields = ('schoolsid', 'type_ownership', 'name', 'school_code',)
+
+class SubjectsRegularFinalGradesSerializer(serializers.ModelSerializer):
+    regularGrades = serializers.SerializerMethodField(read_only=True)
+    finalGrades = serializers.SerializerMethodField(read_only=True)
+    print('I')
+    class Meta:
+        model = models.Subject
+        fields = ("subjectName", "pk", "regularGrades", "finalGrades")
+
+    def get_regularGrades(self, subject):
+        grades = models.regularGrade.objects.filter(lesson__subjectID=subject.pk, studentID=self.context["studentID"])
+        serializer = RegularGradeSerializer(instance=grades, many=True)
+        return serializer.data
+
+    def get_finalGrades(self, subject):
+        grades = models.finalGrade.objects.filter(subjectID=subject.pk, studentID=self.context["studentID"])
+        serializer = FinalGradeSerializer(instance=grades, many=True)
+        return serializer.data
