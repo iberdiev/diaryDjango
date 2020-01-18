@@ -3,6 +3,7 @@ from . import models
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from rest_auth.registration.serializers import RegisterSerializer
+from django.utils.timezone import datetime
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -151,11 +152,10 @@ class StudentFinalGradesSerializer(serializers.ModelSerializer):
 #         data = data
 #         return super(RegularGradesBySubjectListSerializer, self).to_representation(data)
 
-
 class RegularGradesBySubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.regularGrade
-        fields = ('mark', 'lesson','type',)
+        fields = ('pk','mark', 'lesson','type',)
         # list_serializer_class = RegularGradesBySubjectListSerializer
         depth = 1
 
@@ -166,7 +166,9 @@ class StudentGradesOneSubjectSerializer(serializers.ModelSerializer):
         model = models.Student
         fields = ('studentName','pk','cohort','regularGrades',)
     def get_regularGrades(self, student):
-        grades = models.regularGrade.objects.filter(lesson__subjectID=self.context["subjectID"], type=6)
+        # print(datetime.today()- datetime.timedelta(days=13))
+        today = datetime.today().day
+        grades = models.regularGrade.objects.filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__day__lte=today)
         serializer = RegularGradesBySubjectSerializer(instance=grades, many=True)
         return serializer.data
 
@@ -246,7 +248,6 @@ class JkitepSchoolsSerializer(serializers.ModelSerializer):
 class SubjectsRegularFinalGradesSerializer(serializers.ModelSerializer):
     regularGrades = serializers.SerializerMethodField(read_only=True)
     finalGrades = serializers.SerializerMethodField(read_only=True)
-    print('I')
     class Meta:
         model = models.Subject
         fields = ("subjectName", "pk", "regularGrades", "finalGrades")

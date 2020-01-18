@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import (CustomUser, Cohort, Student, Subject, Teacher, regularGrade, Timetable, finalGrade,
+from .models import (CustomUser,Cohort,Student,Subject,Teacher,regularGrade,Timetable,finalGrade,LastChangeInJkitepModtrackerBasic,
     JkitepSchools, JkitepSchoolclasses, JkitepSchoolstaff, JkitepContactdetails, JkitepCrmentity)
 
 
@@ -21,6 +21,7 @@ class CustomUserAdmin(UserAdmin):
         (('CustomUser'), {'fields': ('name','user_role','phoneNumber',)}),
     )
     list_filter = ('user_role', )
+    ordering = ('-created_date',)
 
 
 
@@ -39,3 +40,4 @@ admin.site.register(Subject)
 admin.site.register(regularGrade)
 admin.site.register(Timetable)
 admin.site.register(finalGrade)
+admin.site.register(LastChangeInJkitepModtrackerBasic)

@@ -11,7 +11,6 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['password1'].required = True
         self.fields['password2'].required = True
     def save(self, commit=True):
-        print("asdfasdfasdfasdfasdfasdfasdfasdfasdf")
         user = super(CustomUserCreationForm, self).save(commit=False)
         clean_email = self.cleaned_data["email"]
         if commit:

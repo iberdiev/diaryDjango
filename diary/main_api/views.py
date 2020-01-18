@@ -10,11 +10,33 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from django.utils.timezone import datetime
 
 class UserCreateAPIView(generics.CreateAPIView):
     queryset = models.CustomUser.objects.all()
     serializer_class = serializers.UserSerializer
-
+    def perform_create(self, serializer):
+        user_role = int(self.request.data["user_role"])
+        if user_role == 1:
+            serializer.save()
+            username = self.request.data["username"]
+            user = models.CustomUser.objects.get(username=username)
+            user.set_password(username)
+            user.save()
+        elif user_role == 2:
+            username = self.request.data["username"]
+            serializer.save()
+            user = models.CustomUser.objects.get(username=self.request.data["username"])
+            user.set_password(username)
+            user.save()
+            schoolID = self.request.user
+            models.Teacher.objects.create(teacherName=self.request.data["name"], schoolID=schoolID, teacherID=user)
+        elif user_role == 3:
+            serializer.save()
+            username = self.request.data["username"]
+            user = models.CustomUser.objects.get(username=username)
+            user.set_password(username)
+            user.save()
 
 @permission_classes((IsAuthenticated, ))
 class ChangeTeacherOfSubject(APIView):
@@ -79,10 +101,14 @@ class StudentsListView(APIView):
         return Response(data)
 
     def post(self, request, format=None):
+
         serializer = serializers.StudentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(cohort=models.Cohort.objects.get(pk=request.data['cohort']),
-                            parent=models.CustomUser.objects.get(username=request.data['parent']))
+            if self.request.data["parent"]:
+                serializer.save(cohort=models.Cohort.objects.get(pk=request.data['cohort']),
+                                parent=models.CustomUser.objects.get(username=request.data['parent']))
+            else:
+                serializer.save(cohort=models.Cohort.objects.get(pk=request.data['cohort']))
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -116,7 +142,8 @@ class CustomLoginView(ObtainAuthToken):
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
-            'user_role': user.user_role
+            'user_role': user.user_role,
+            'name': user.name,
         })
 
 @permission_classes((IsAuthenticated, ))
@@ -186,8 +213,11 @@ class RegularGradesListView(APIView):
     def post(self, request, format=None):
         serializer = serializers.RegularGradeSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            student = models.Student.objects.get(pk=request.data["studentID"])
+            teacherID = request.user.mainTeacher
+            serializer.save(studentID=student, teacherID=teacherID)
+            return Response("OK")
+            # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 ##### asldjfklasdjfklasdjlfkjasd;lfjkl
 class CohortRegularGradesOneSubjectView(APIView):
@@ -197,9 +227,19 @@ class CohortRegularGradesOneSubjectView(APIView):
         subjectID = self.request.query_params.get('subjectID')
         gradeType = self.request.query_params.get('type')
         data = serializers.StudentGradesOneSubjectSerializer(student, many=True, context={"subjectID": subjectID, "type":gradeType}).data
-        timetable = models.Timetable.objects.filter(subjectID=subjectID)
+        timetable = models.Timetable.objects.filter(subjectID=subjectID, date__day__lte=datetime.today().day)
         timetables = serializers.TimetableSerializer(timetable, many=True).data
         return Response({"grades": data, "timetables": timetables})
+
+        # filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__day__lte=today)
+
+
+    # def post(self, request, format=None):
+    #     serializer = serializers.RegularGradeSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StudentSubjectFinalGradesView(APIView):

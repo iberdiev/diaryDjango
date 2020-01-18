@@ -3,7 +3,9 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class CustomUser(AbstractUser):
     db = 'default'
@@ -12,7 +14,8 @@ class CustomUser(AbstractUser):
     user_role = models.IntegerField(null=True)
     created_date = models.DateTimeField('date_created', auto_now_add = True, null=True)
     phoneNumber = models.CharField(default='', max_length=255)
-
+    class Meta:
+       verbose_name_plural = "1. Пользователи"
 
     def __str__(self):
         return self.username
@@ -22,7 +25,8 @@ class Teacher(models.Model):
     teacherName = models.CharField(max_length = 100)
     schoolID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null = True, related_name='teachers')
     teacherID = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainTeacher')
-
+    class Meta:
+       verbose_name_plural = "2. Учителя"
     # def save_model(self, request, obj, form, change):
     #     obj.schoolID = request.user
     #     super().save_model(request, obj, form, change)
@@ -37,7 +41,8 @@ class Cohort(models.Model):
     mainTeacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, related_name='mainCohorts')
     class_name = models.CharField(max_length = 100)
     jkitepClassID = models.IntegerField(null=True, unique=True)
-
+    class Meta:
+       verbose_name_plural = "3. Классы"
     def __str__(self):
         return self.class_name
 
@@ -49,7 +54,8 @@ class Student(models.Model):
     phoneNumber = models.CharField(default='', max_length=255)
     def __str__(self):
         return self.studentName
-
+    class Meta:
+       verbose_name_plural = "4. Студенты"
 
     # def save_post(sender, instance, **kwargs):
     #     school.
@@ -64,7 +70,8 @@ class Subject(models.Model):
     teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='subjects', null=True)
     def __str__(self):
         return  '%s - %s' % (self.cohortID, self.subjectName)
-
+    class Meta:
+       verbose_name_plural = "5. Предметы"
 class Timetable(models.Model):
     db = 'default'
     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
@@ -74,6 +81,9 @@ class Timetable(models.Model):
     endTime = models.TimeField(null=True)
     homework = models.CharField(max_length = 100, default='')
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='timetable', null=True)
+    class Meta:
+       ordering = ('date',)
+       verbose_name_plural = "6. Расписание уроков"
     def __str__(self):
         return  '%s - %s' % (self.date, self.subjectID)
 
@@ -94,6 +104,8 @@ class regularGrade(models.Model):
         (6, 'Повседневная оценка'),
     )
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=6)
+    class Meta:
+       verbose_name_plural = "7. Обычные оценки"
     def __str__(self):
         return  '%s - %s' % (self.lesson, self.studentID)
 
@@ -110,6 +122,8 @@ class finalGrade(models.Model):
         (5, 'Итог'),
     )
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES)
+    class Meta:
+       verbose_name_plural = "8. Итоговые оценки"
     def __str__(self):
         return  '%s - %s' % (self.subjectID, self.studentID)
 
@@ -352,3 +366,27 @@ class JkitepAccount(models.Model):
     class Meta:
         managed = False
         db_table = 'jkitep_account'
+
+class JkitepModtrackerBasic(models.Model):
+    db = 'test'
+    id = models.IntegerField(primary_key=True)
+    crmid = models.IntegerField(blank=True, null=True)
+    module = models.CharField(max_length=50, blank=True, null=True)
+    whodid = models.IntegerField(blank=True, null=True)
+    changedon = models.DateTimeField(blank=True, null=True)
+    status = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'jkitep_modtracker_basic'
+
+class LastChangeInJkitepModtrackerBasic(models.Model):
+    db = 'default'
+    id = models.IntegerField(primary_key=True)
+    class Meta:
+       verbose_name_plural = "ID Последнего изменения"
+
+#Django signal examples (does not work if model is from remote db)
+# @receiver(post_save, sender=JkitepModtrackerBasic)
+# def synchronization(sender, instance, created, **kwargs):
+#     print("Created: ", created)
