@@ -1,4 +1,4 @@
-import os, django, requests
+import os, django, requests, datetime
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "diary.settings")
 django.setup()
 from main_api import models
@@ -10,13 +10,13 @@ from main_api import models
 # schools = models.JkitepSchools.objects.raw("SELECT * FROM `jkitep_schools` INNER JOIN jkitep_crmentity on jkitep_schools.schoolsid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = 0" )
 # for school in schools:
 #
-#     asdf = str(school.schoolsid)+"school"
+#     schoolName = str(school.schoolsid)+"school"
 #
 #     data = {"name": school.label,
-#            "username":asdf,
+#            "username":schoolName,
 #            "user_role": 1,
-#            "password1":asdf,
-#            "password2":asdf}
+#            "password1":schoolName,
+#            "password2":schoolName}
     # a = requests.post(url = URL, data = data)
 
 #############################
@@ -111,15 +111,13 @@ from main_api import models
 # Script that checks all the changes in JkitepDB and applies them in djangoDB
 
 lastChangeID = str(models.LastChangeInJkitepModtrackerBasic.objects.last().id)
-print("######### Django Last Change ID: " + lastChangeID)
-# SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = 443177
 changes = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id > "+ lastChangeID)
 
 for change in changes:
     changeID = str(change.id)
     if change.module == "Schools":
         if change.status == 2:
-            pass # Done
+            continue # Done
             # specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             # print(change.id, "- School has been created")
             # username = str(specificChanges[0].crmid) + "school"
@@ -149,7 +147,7 @@ for change in changes:
             deletedSchool = specificChanges[0].crmid
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "SchoolStaff":
-        continue
+        continue #Done
         if change.status == 2:
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
@@ -179,7 +177,7 @@ for change in changes:
             # print(change.id, "- Staff has been deleted")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "SchoolClasses":
-        continue
+        continue # Done
         if change.status == 2:
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
@@ -210,6 +208,7 @@ for change in changes:
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "Contacts":
         if change.status == 2:
+            continue # Done
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
                 if specificChange.fieldname == "label":
@@ -239,7 +238,7 @@ for change in changes:
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "Accounts":
         if change.status == 2:
-            continue
+            continue # Done
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             parentUsername = str(specificChanges[0].crmid) + "parent"
             for specificChange in specificChanges:
@@ -283,3 +282,7 @@ for change in changes:
 # При удалении родителя "module = Accounts" and "status = 1"
 
 #############################
+# Скрипт берет расписание текущей недели и копирует на следующую
+
+print(datetime.datetime.today())
+print(datetime.datetime.today().weekday())

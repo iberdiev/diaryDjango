@@ -16,7 +16,15 @@ class UserSerializer(serializers.ModelSerializer):
     #     user.save()
     #     return user
 
+class ChangeRegularGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.regularGrade
+        fields = ("pk", "mark",)
 
+class DeleteRegularGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.regularGrade
+        fields = ("pk",)
 
 
 class CustomRegisterSerializer(RegisterSerializer):
@@ -131,7 +139,12 @@ class StudentSerializer(serializers.ModelSerializer):
 class FinalGradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.finalGrade
-        fields = ['type','mark']
+        fields = ['type','mark', 'pk','studentID', 'subjectID']
+
+class ChangeFinalGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.finalGrade
+        fields = ['mark']
 
 class StudentFinalGradesSerializer(serializers.ModelSerializer):
     finalGrades = serializers.SerializerMethodField(read_only=True)

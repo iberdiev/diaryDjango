@@ -67,9 +67,24 @@ class SubjectsListView(APIView):
     def post(self, request, format=None):
         serializer = serializers.SubjectSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(cohortID=models.Cohort.objects.get(pk=request.data['cohort']))
+            cohortID = models.Cohort.objects.get(pk=request.data["cohortID"])
+            teacherID = models.Teacher.objects.get(pk=request.data["teacherID"])
+            serializer.save(cohortID=cohortID,teacherID=teacherID)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, format=None):
+        subject = models.Subject.objects.get(pk=request.data["pk"])
+        teacherID = models.Teacher.objects.get(pk=request.data["teacherID"])
+        serializer = serializers.SubjectSerializer(subject, data=request.data)
+        if serializer.is_valid():
+            serializer.save(teacherID=teacherID)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, format=None):
+        subject = models.Subject.objects.get(pk=request.query_params.get('pk'))
+        subject.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @permission_classes((IsAuthenticated, ))
 class TeachersListView(APIView):
@@ -167,7 +182,6 @@ class givenSubjectsOfTeacher(APIView):
         data = serializers.SubjectCohortSerializer(subjects, many=True).data
         return Response(data)
 
-
 @permission_classes((IsAuthenticated, ))
 class getUniqueCohortsByTaught(APIView):
     def get(self, request):
@@ -219,6 +233,18 @@ class RegularGradesListView(APIView):
             return Response("OK")
             # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, format=None):
+        regularGrade = models.regularGrade.objects.get(pk=(request.data["pk"]))
+        serializer = serializers.ChangeRegularGradeSerializer(regularGrade, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, format=None):
+        regularGrade = models.regularGrade.objects.get(pk=request.query_params.get('pk'))
+        regularGrade.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 ##### asldjfklasdjfklasdjlfkjasd;lfjkl
 class CohortRegularGradesOneSubjectView(APIView):
     def get(self, request):
@@ -230,10 +256,7 @@ class CohortRegularGradesOneSubjectView(APIView):
         timetable = models.Timetable.objects.filter(subjectID=subjectID, date__day__lte=datetime.today().day)
         timetables = serializers.TimetableSerializer(timetable, many=True).data
         return Response({"grades": data, "timetables": timetables})
-
         # filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__day__lte=today)
-
-
     # def post(self, request, format=None):
     #     serializer = serializers.RegularGradeSerializer(data=request.data)
     #     if serializer.is_valid():
@@ -257,6 +280,28 @@ class CohortSubjectFinalGradesView(APIView):
         students = models.Cohort.objects.get(pk=cohortID).students
         data = serializers.StudentFinalGradesSerializer(students, many=True).data
         return Response(data)
+    def post(self, request, format=None):
+        serializer = serializers.FinalGradeSerializer(data=request.data)
+        if serializer.is_valid():
+            # student = models.Student.objects.get(pk=request.data["studentID"])
+            # teacherID = request.user.mainTeacher
+            serializer.save()
+            return Response("OK")
+            # return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, format=None):
+        finalGrade = models.finalGrade.objects.get(pk=(request.data["pk"]))
+        serializer = serializers.ChangeFinalGradeSerializer(finalGrade, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, format=None):
+        finalGrade = models.finalGrade.objects.get(pk=request.query_params.get('pk'))
+        finalGrade.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @permission_classes((IsAuthenticated, ))
@@ -295,6 +340,21 @@ class TimetableByCohortView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # curl -d '{"teacher":2, "cohortID": 17, "subjectID": 22, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/timetableByCohort/
+
+    def put(self, request, format=None):
+        timetable = models.Timetable.objects.get(pk=(request.data["pk"]))
+        serializer = serializers.TimetableSerializer(timetable, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# pk = 1, subjectID.pk = 1, cohortID.pk = 2, date = datetime.date(2020, 1, 15), startTime = datetime.time(10, 21, 39)
+# endTime = datetime.time(10, 21, 39), homework = 'страница 10, упр 34', a.teacher.pk = 2
+
+    # def delete(self, request, format=None):
+    #     finalGrade = models.finalGrade.objects.get(pk=request.query_params.get('pk'))
+    #     finalGrade.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TimetableByTeacherView(APIView):
     def get(self, request):
