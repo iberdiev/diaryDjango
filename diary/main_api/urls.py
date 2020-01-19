@@ -28,6 +28,11 @@ urlpatterns = [
     path('studentSubjectFinalGrades/', views.StudentSubjectFinalGradesView.as_view()),
     path('cohortSubjectFinalGrades/', views.CohortSubjectFinalGradesView.as_view()),
     path('studentIDSubjectsRegularFinalGrades/', views.StudentIDSubjectsRegularFinalGradesView.as_view()),
+
+    path('sendResetCode/', views.SendResetCode.as_view()),
+    path('setPassword/', views.SetPasswordView.as_view()),
+
+    path('callToNumber/', views.CallToNumber.as_view()),
     ]
 
 

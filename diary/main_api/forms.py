@@ -12,7 +12,7 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['password2'].required = True
     def save(self, commit=True):
         user = super(CustomUserCreationForm, self).save(commit=False)
-        clean_email = self.cleaned_data["email"]
+        # clean_email = self.cleaned_data["email"]
         if commit:
             user.save()
 

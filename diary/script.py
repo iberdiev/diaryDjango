@@ -195,10 +195,10 @@ for change in changes:
                     "mainTeacherID": mainTeacherID,
                     "schoolID": schoolID,
                     "jkitepClassID": jkitepClassID}
-            a = requests.post(url = "http://127.0.0.1:8080/api/v1/get_cohorts/", data = data)
-            print(change.id, "- Cohort has been created")
-            models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
-        elif change.status == 0:
+                a = requests.post(url = "http://127.0.0.1:8080/api/v1/get_cohorts/", data = data)
+                print(change.id, "- Cohort has been created")
+                models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
+            elif change.status == 0:
             pass
             # print(change.id, "- Cohort has been altered")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)

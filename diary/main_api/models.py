@@ -14,6 +14,7 @@ class CustomUser(AbstractUser):
     user_role = models.IntegerField(null=True)
     created_date = models.DateTimeField('date_created', auto_now_add = True, null=True)
     phoneNumber = models.CharField(default='', max_length=255)
+    codeToResetPassword = models.IntegerField(null=True)
     class Meta:
        verbose_name_plural = "1. Пользователи"
 

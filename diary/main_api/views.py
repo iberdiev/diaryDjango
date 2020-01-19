@@ -1,4 +1,4 @@
-from . import models, serializers
+from . import models, serializers, tasks
 # from django.db import models
 from rest_framework import generics, status, viewsets
 from main_api.models import CustomUser
@@ -11,6 +11,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from django.utils.timezone import datetime
+import random, requests
+
+
 
 class UserCreateAPIView(generics.CreateAPIView):
     queryset = models.CustomUser.objects.all()
@@ -89,8 +92,7 @@ class SubjectsListView(APIView):
 @permission_classes((IsAuthenticated, ))
 class TeachersListView(APIView):
     def get(self, request):
-        school = self.request.query_params.get('school')
-        teachers = models.CustomUser.objects.get(username=school).teachers
+        teachers = request.user.teachers
         data = serializers.TeacherSerializer(teachers, many=True).data
         return Response(data)
     def post(self, request, format=None):
@@ -310,7 +312,7 @@ class TimetableByCohortWithOneStudentsGradesView(APIView):
         cohortID = self.request.query_params.get('cohortID')
         date = self.request.query_params.get("date")
         student = self.request.query_params.get('studentID')
-        timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date)
+        timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date).order_by("startTime")
         data = serializers.TimetableWithOneStudentSerializer(timetables, many=True, context={"studentID": student}).data
         return Response(data)
 
@@ -343,24 +345,22 @@ class TimetableByCohortView(APIView):
 
     def put(self, request, format=None):
         timetable = models.Timetable.objects.get(pk=(request.data["pk"]))
-        serializer = serializers.TimetableSerializer(timetable, data=request.data)
+        serializer = serializers.ChangeTimetableSerializer(timetable, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# pk = 1, subjectID.pk = 1, cohortID.pk = 2, date = datetime.date(2020, 1, 15), startTime = datetime.time(10, 21, 39)
-# endTime = datetime.time(10, 21, 39), homework = 'страница 10, упр 34', a.teacher.pk = 2
 
-    # def delete(self, request, format=None):
-    #     finalGrade = models.finalGrade.objects.get(pk=request.query_params.get('pk'))
-    #     finalGrade.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, format=None):
+        lesson = models.Timetable.objects.get(pk=request.query_params.get('pk'))
+        lesson.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TimetableByTeacherView(APIView):
     def get(self, request):
         teacherID = self.request.query_params.get('teacherID')
         date = self.request.query_params.get("date")
-        teacher = models.Teacher.objects.get(pk=teacherID).timetable
+        teacher = models.Teacher.objects.get(pk=teacherID).timetable.order_by("startTime")
         # teacher = models.Teacher.objects.get(pk=teacherID).timetable.filter(date="2020-01-08")
         data = serializers.FilteredTimetableSerializer(teacher, many=True, context={"date": date}).data
         return Response(data)
@@ -377,3 +377,33 @@ class StudentIDSubjectsRegularFinalGradesView(APIView):
         subjects = models.Subject.objects.filter(cohortID=student.cohort)
         data = serializers.SubjectsRegularFinalGradesSerializer(subjects, many=True, context={"studentID": student.pk}).data
         return Response(data)
+
+class SendResetCode(APIView):
+    def get(self, request):
+        user = models.CustomUser.objects.get(username=self.request.query_params.get('username'))
+        code = random.randint(1000,9999)
+        user.codeToResetPassword = code
+        user.save()
+        tasks.sendEmailToSetPassword.delay(user.email, code)
+        return Response("На вашу почту отправим код для восстановления пароля в течении 1ой минуты!")
+
+class SetPasswordView(APIView):
+    def post(self, request):
+        user = models.CustomUser.objects.get(username=request.data["username"])
+        if user.codeToResetPassword == int(request.data["code"]):
+            user.set_password(request.data["password"])
+            user.save()
+        else:
+            return Response("Неверный код.")
+        return Response("Пароль был изменен.")
+
+class CallToNumber(APIView):
+    def get(self, request):
+        if self.request.query_params.get('username'):
+            headers = {"X-AUTH-TOKEN": "UFzwQZMugSrMxCd7yW9PfNVX"}
+            user = models.CustomUser.objects.get(username=self.request.query_params.get('username'))
+            response = requests.get("http://192.168.0.89:3000/api/request/{}/".format(user.phoneNumber), headers=headers).json()
+            user.codeToResetPassword = int(response['data']['gateway']['phone'])
+            user.save()
+            return Response("Звонок был совершен.")
+        return Response("Неверно введен номер телефона.")

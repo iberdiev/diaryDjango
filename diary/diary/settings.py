@@ -168,8 +168,21 @@ AUTH_USER_MODEL = 'main_api.CustomUser'
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_ADAPTER = 'main_api.adapter.CustomAccountAdapter'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'onlinediaryputinbyte@yandex.ru'
+EMAIL_HOST_PASSWORD = 'FuckingAsshole'
+EMAIL_USE_TLS = True

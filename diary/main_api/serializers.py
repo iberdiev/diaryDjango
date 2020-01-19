@@ -16,6 +16,12 @@ class UserSerializer(serializers.ModelSerializer):
     #     user.save()
     #     return user
 
+class ChangeTimetableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Timetable
+        fields = ('startTime','endTime', 'teacher',)
+
+
 class ChangeRegularGradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.regularGrade
