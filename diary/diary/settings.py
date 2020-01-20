@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from celery.schedules import crontab
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'rest_auth.registration',
     'main_api',
+    'social_django',
     ]
 
 
@@ -186,3 +189,18 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'onlinediaryputinbyte@yandex.ru'
 EMAIL_HOST_PASSWORD = 'FuckingAsshole'
 EMAIL_USE_TLS = True
+
+
+# Other Celery settings
+CELERY_BEAT_SCHEDULE = {
+    'task-number-one': {
+        'task': 'main_api.tasks.periodicPrintHelloWorld',
+        'schedule': crontab(minute='*/15'),
+        # 'schedule': crontab(minute=0, hour=0),
+    },
+    'task-number-two': {
+        'task': 'main_api.tasks.duplicateTodaysLessonsToNextWeek',
+        'schedule': crontab(minute=55, hour=23),
+    },
+
+}

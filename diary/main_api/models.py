@@ -3,8 +3,10 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete, m2m_changed
 from django.dispatch import receiver
+import os, logging, platform
+# SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 
 class CustomUser(AbstractUser):
@@ -391,3 +393,121 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
 # @receiver(post_save, sender=JkitepModtrackerBasic)
 # def synchronization(sender, instance, created, **kwargs):
 #     print("Created: ", created)
+
+
+if platform.system() == "Linux":
+    PATH_TO_SAVE = '{}/'.format(
+        os.path.dirname(__file__))
+
+elif platform.system() == "Windows":
+    PATH_TO_SAVE = '{}\\.log'.format(
+        os.path.dirname(_file_))
+
+else:
+    PATH_TO_SAVE = 'diary_logger.log'
+
+
+formatter = logging.Formatter("\n%(asctime)s: %(name)s | %(message)s")
+
+creations_logger = logging.getLogger('CreatesLoger')
+creations_logger.setLevel(logging.DEBUG)
+creations_file_handler = logging.FileHandler(f'{PATH_TO_SAVE}CREATED.log')
+creations_file_handler.setFormatter(formatter)
+creations_logger.addHandler(creations_file_handler)
+
+
+deletions_logger = logging.getLogger('DeletesLoger')
+deletions_logger.setLevel(logging.DEBUG)
+deletions_file_handler = logging.FileHandler(f'{PATH_TO_SAVE}DELETED.log')
+deletions_file_handler.setFormatter(formatter)
+deletions_logger.addHandler(deletions_file_handler)
+
+
+updates_logger = logging.getLogger('UpdatesLoger')
+updates_logger.setLevel(logging.DEBUG)
+updates_file_handler = logging.FileHandler(f'{PATH_TO_SAVE}UPDATED.log')
+updates_file_handler.setFormatter(formatter)
+updates_logger.addHandler(updates_file_handler)
+
+# @receiver(m2m_changed, sender=Timetable)
+# def time_tbl_obj(sender, instance, **kwargs):
+#     updates_logger.info(f'Расписание \"{instance}\" было успешно изменено!')
+
+@receiver(post_save, sender=CustomUser)
+def school_user(sender, instance, **kwargs):
+    creations_logger.info(f'Школа \"{instance}\" был успешно добавлен!')
+
+
+@receiver(post_save, sender=Teacher)
+def teacher_user(sender, instance, **kwargs):
+    creations_logger.info(f'Учитель \"{instance}\" был успешно добавлен!')
+
+
+@receiver(post_save, sender=Cohort)
+def cohort_obj(sender, instance, **kwargs):
+    creations_logger.info(f'Класс \"{instance}\" был успешно добавлен!')
+
+@receiver(post_save, sender=Student)
+def student_user(sender, instance, **kwargs):
+    creations_logger.info(f'Ученик \"{instance}\" был успешно добавлен!')
+
+@receiver(post_save, sender=Subject)
+def subject_obj(sender, instance, **kwargs):
+    creations_logger.info(f'Урок \"{instance}\" был успешно добавлен!')
+
+@receiver(post_save, sender=Timetable)
+def time_tbl_obj(sender, instance, **kwargs):
+    creations_logger.info(f'Расписание \"{instance}\" было успешно добавлено!')
+
+
+
+# @receiver(m2m_changed, sender=CustomUser)
+# def school_user(sender, instance, **kwargs):
+#     updates_logger.info(f'Школа \"{instance}\" был успешно изменен!')
+
+# @receiver(m2m_changed, sender=Teacher)
+# def teacher_user(sender, instance, **kwargs):
+#     updates_logger.info(f'Учитель \"{instance}\" был успешно изменён!')
+
+# @receiver(m2m_changed, sender=Cohort)
+# def cohort_obj(sender, instance, **kwargs):
+#     updates_logger.info(f'Класс \"{instance}\" был успешно изменён!')
+
+# @receiver(m2m_changed, sender=Student)
+# def student_user(sender, instance, **kwargs):
+#     updates_logger.info(f'Ученик \"{instance}\" был успешно изменён!')
+
+# @receiver(m2m_changed, sender=Subject)
+# def subject_obj(sender, instance, **kwargs):
+#     updates_logger.info(f'Урок \"{instance}\" был успешно изменён!')
+# @receiver(m2m_changed, sender=Timetable)
+# def time_tbl_obj(sender, instance, **kwargs):
+#     updates_logger.info(f'Расписание \"{instance}\" было успешно изменено!')
+
+
+
+@receiver(post_delete, sender=CustomUser)
+def school_user(sender, instance, **kwargs):
+    deletions_logger.info(f'Школа \"{instance}\" был успешно удалён!')
+    print(os.path.dirname(os.path.realpath(__file__)))
+
+
+@receiver(post_delete, sender=Teacher)
+def teacher_user(sender, instance, **kwargs):
+    deletions_logger.info(f'Учитель \"{instance}\" был успешно удалён!')
+
+@receiver(post_delete, sender=Cohort)
+def cohort_obj(sender, instance, **kwargs):
+    deletions_logger.info(f'Класс \"{instance}\" был успешно удалён!')
+
+@receiver(post_delete, sender=Student)
+def student_user(sender, instance, **kwargs):
+    deletions_logger.info(f'Ученик \"{instance}\" был успешно удалён!')
+
+@receiver(post_delete, sender=Subject)
+def subject_obj(sender, instance, **kwargs):
+    deletions_logger.info(f'Урок \"{instance}\" был успешно удалён!')
+
+@receiver(post_delete, sender=Timetable)
+def time_tbl_obj(sender, instance, **kwargs):
+    deletions_logger.info(f'Расписание \"{instance}\" было успешно удалёно!')

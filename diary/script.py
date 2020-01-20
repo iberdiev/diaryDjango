@@ -114,6 +114,7 @@ lastChangeID = str(models.LastChangeInJkitepModtrackerBasic.objects.last().id)
 changes = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id > "+ lastChangeID)
 
 for change in changes:
+    break
     changeID = str(change.id)
     if change.module == "Schools":
         if change.status == 2:
@@ -195,10 +196,10 @@ for change in changes:
                     "mainTeacherID": mainTeacherID,
                     "schoolID": schoolID,
                     "jkitepClassID": jkitepClassID}
-                a = requests.post(url = "http://127.0.0.1:8080/api/v1/get_cohorts/", data = data)
-                print(change.id, "- Cohort has been created")
-                models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
-            elif change.status == 0:
+            a = requests.post(url = "http://127.0.0.1:8080/api/v1/get_cohorts/", data = data)
+            print(change.id, "- Cohort has been created")
+            models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
+        elif change.status == 0:
             pass
             # print(change.id, "- Cohort has been altered")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
@@ -282,7 +283,27 @@ for change in changes:
 # При удалении родителя "module = Accounts" and "status = 1"
 
 #############################
-# Скрипт берет расписание текущей недели и копирует на следующую
+# Скрипт берет расписание текущего дня и копирует на следующую неделю соответсвенного дня
+today = datetime.date.today()
+oneWeekLater = today + datetime.timedelta(days=7)
+todaysLessons = models.Timetable.objects.filter(date=today)
+for lesson in todaysLessons:
+    futureLesson = models.Timetable.objects.filter(date=oneWeekLater, startTime=lesson.startTime)
+    if len(futureLesson) is 0:
+        lessonToCreate = lesson
+        lessonToCreate.date, lessonToCreate.pk  = oneWeekLater, None
+        lessonToCreate.save()
 
-print(datetime.datetime.today())
-print(datetime.datetime.today().weekday())
+# class Timetable(models.Model):
+#     db = 'default'
+#     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
+#     cohortID = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='timetable')
+#     date = models.DateField(null=True)
+#     startTime = models.TimeField(null=True)
+#     endTime = models.TimeField(null=True)
+#     homework = models.CharField(max_length = 100, default='')
+#     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='timetable', null=True)
+#     class Meta:
+#        ordering = ('date',)
+#        verbose_name_plural = "6. Расписание уроков"
+#     def __str__(self):

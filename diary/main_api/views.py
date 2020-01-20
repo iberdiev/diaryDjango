@@ -328,7 +328,7 @@ class TimetableByCohortView(APIView):
     def get(self, request):
         cohortID = self.request.query_params.get('cohortID')
         date = self.request.query_params.get("date")
-        timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date)
+        timetables = models.Timetable.objects.filter(cohortID=cohortID, date = date).order_by("startTime")
         data = serializers.TimetableSerializer(timetables, many=True).data
         return Response(data)
 
