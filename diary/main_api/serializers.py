@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ChangeTimetableSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Timetable
-        fields = ('startTime','endTime', 'teacher',)
+        fields = ('startTime','endTime', 'teacher','homework',)
 
 
 class ChangeRegularGradeSerializer(serializers.ModelSerializer):
@@ -159,7 +159,7 @@ class StudentFinalGradesSerializer(serializers.ModelSerializer):
         model = models.Student
         fields = ('studentName','pk','cohort','finalGrades',)
     def get_finalGrades(self, student):
-        grades = models.finalGrade.objects.filter(studentID=student)
+        grades = models.finalGrade.objects.filter(studentID=student,subjectID=self.context["subjectID"])
         serializer = FinalGradeSerializer(instance=grades, many=True)
         return serializer.data
 
@@ -206,12 +206,14 @@ class TimetableWithOneStudentSerializer(serializers.ModelSerializer):
 
 class TimetableSerializer(serializers.ModelSerializer):
     subjectName = serializers.SerializerMethodField(read_only=True)
-
+    teacherName = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = models.Timetable
-        fields = ('pk','subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName',)
+        fields = ('pk','subjectID', 'cohortID', 'date', 'startTime', 'endTime', 'homework','teacher','subjectName','teacherName',)
     def get_subjectName(self, timetable):
         return timetable.subjectID.subjectName
+    def get_teacherName(self, timetable):
+        return timetable.teacher.teacherName
 
 
 #jhaksldfjiuasdhfoshdfui

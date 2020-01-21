@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 from celery.schedules import crontab
-
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -194,13 +194,20 @@ EMAIL_USE_TLS = True
 # Other Celery settings
 CELERY_BEAT_SCHEDULE = {
     'task-number-one': {
-        'task': 'main_api.tasks.periodicPrintHelloWorld',
-        'schedule': crontab(minute='*/15'),
-        # 'schedule': crontab(minute=0, hour=0),
+        'task': 'main_api.tasks.synchronizationWithJKitepDB',
+        'schedule': crontab(minute=55, hour=23),
+        # 'schedule': datetime.timedelta(seconds=30),
     },
     'task-number-two': {
         'task': 'main_api.tasks.duplicateTodaysLessonsToNextWeek',
-        'schedule': crontab(minute=55, hour=23),
+        'schedule': crontab(minute=55, hour=22),
+         # 'schedule': datetime.timedelta(minutes=30)
     },
+    # 'task-number-one': {
+    #     'task': 'main_api.tasks.periodicPrintHelloWorld',
+    #     # 'schedule': crontab(minute='*/15'),
+    #     'schedule': datetime.timedelta(minutes=30),
+    #     # 'schedule': crontab(minute=0, hour=0),
+    # },
 
 }

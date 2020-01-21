@@ -11,7 +11,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from django.utils.timezone import datetime
-import random, requests
+import random, requests, hashlib
+
 
 
 
@@ -280,7 +281,7 @@ class CohortSubjectFinalGradesView(APIView):
         cohortID = self.request.query_params.get('cohortID')
         subjectID = self.request.query_params.get('subjectID')
         students = models.Cohort.objects.get(pk=cohortID).students
-        data = serializers.StudentFinalGradesSerializer(students, many=True).data
+        data = serializers.StudentFinalGradesSerializer(students, many=True, context={"subjectID": subjectID}).data
         return Response(data)
     def post(self, request, format=None):
         serializer = serializers.FinalGradeSerializer(data=request.data)
@@ -407,3 +408,34 @@ class CallToNumber(APIView):
             user.save()
             return Response("Звонок был совершен.")
         return Response("Неверно введен номер телефона.")
+
+class CreateSubjectAndTimetable(APIView):
+    def post(self, request):
+        cohortID = models.Cohort.objects.get(pk=request.data["cohortID"])
+        teacherID = models.Teacher.objects.get(pk=request.data["teacher"])
+        subject = models.Subject.objects.create(cohortID=cohortID,teacherID=teacherID,subjectName=request.data["newSubject"])
+        data = request.data
+        data['subjectID'] = subject.pk
+        timeTableSerializer = serializers.TimetableSerializer(data=data)
+        if timeTableSerializer.is_valid():
+            timeTableSerializer.save()
+        # {"newSubject":"Новый предмет","teacher":2, "cohortID": 2, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}
+        return Response("OK")
+# import md5
+class LoginViaJKitep(APIView):
+    # curl -d '{"username":"admin","password":"admin"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/loginViaJKitep/
+    def post(self, request):
+        # response = requests.get("https://test.kitep.org.kg/webservice.php?operation=getchallenge&username={}".format(request.data["username"]))
+        # response = response.json()
+        # token = response["result"]["token"] + "0kCxsOFqoh1NAHIA"
+        # print(token)
+        # token = token.encode('utf-8')
+
+        # print(token)
+        # data = {'operation':'login',
+                # 'username':request.data["username"],
+                # 'accessKey': hashlib.md5(token).hexdigest()}
+
+        # responsee = requests.post("https://test.kitep.org.kg/webservice.php",data=data)
+
+        return Response(responsee)

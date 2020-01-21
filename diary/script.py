@@ -112,43 +112,41 @@ from main_api import models
 
 lastChangeID = str(models.LastChangeInJkitepModtrackerBasic.objects.last().id)
 changes = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id > "+ lastChangeID)
-
 for change in changes:
-    break
     changeID = str(change.id)
     if change.module == "Schools":
         if change.status == 2:
-            continue # Done
-            # specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
-            # print(change.id, "- School has been created")
-            # username = str(specificChanges[0].crmid) + "school"
-            # for specificChange in specificChanges:
-            #     if specificChange.fieldname == "label":
-            #         schoolName = specificChange.postvalue
-            # data = {"name": schoolName,
-            #         "username":username,
-            #         "user_role": 1,
-            #         "password1":username,
-            #         "password2":username}
-            # a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
+            print(change.id, "- School has been created")
+            username = str(specificChanges[0].crmid) + "school"
+            for specificChange in specificChanges:
+                if specificChange.fieldname == "label":
+                    schoolName = specificChange.postvalue
+            data = {"name": schoolName,
+                    "username":username,
+                    "user_role": 1,
+                    "password1":username,
+                    "password2":username}
+            a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 0:
-            continue
             print(change.id, "- School has been altered")
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
+            schoolUsername = str(specificChanges[0].crmid) + "school"
             for specificChange in specificChanges:
                 if specificChange.fieldname == "label":
                     changedName = specificChange.postvalue
-                    print(changedName)
+                    break
+            school = models.CustomUser.objects.get(username=schoolUsername)
+            school.name=changedName
+            school.save()
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 1:
-            continue
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id = " + changeID)
             print(change.id, "- School has been deleted")
-            deletedSchool = specificChanges[0].crmid
+            models.CustomUser.objects.get(username=(str(specificChanges[0].crmid)+"school")).delete()
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "SchoolStaff":
-        continue #Done
         if change.status == 2:
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
@@ -166,19 +164,33 @@ for change in changes:
             a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
             schoolID = models.CustomUser.objects.get(username=schoolUsername)
             teacherID = models.CustomUser.objects.get(username=username)
-            models.Teacher.objects.create(teacherName=name, schoolID=schoolID, teacherID=teacherID)
+            if not models.CustomUser.objects.filter(username=teacherID).exists():
+                models.Teacher.objects.create(teacherName=name, schoolID=schoolID, teacherID=teacherID)
             print(change.id, "- Staff has been created")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 0:
-            pass
-            # print(change.id, "- Staff has been altered")
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = {} INNER JOIN jkitep_crmentity on jkitep_modtracker_basic.crmid = jkitep_crmentity.crmid".format(changeID))
+            teacher = models.CustomUser.objects.get(username=str(specificChanges[0].smownerid)+"teacher")
+            for specificChange in specificChanges:
+                if specificChange.fieldname == "label":
+                    teacher.name = specificChange.postvalue
+                    teacher.save()
+                    teacher = teacher.mainTeacher
+                    teacher.teacherName = specificChange.postvalue
+                    teacher.save()
+                if specificChange.fieldname == "school_id":
+                    school = models.CustomUser.objects.get(username=str(specificChange.postvalue)+"school")
+                    teacher = models.CustomUser.objects.get(username=str(specificChange.smownerid)+"teacher").mainTeacher
+                    teacher.schoolID = school
+                    teacher.save()
+            print(change.id, "- Staff has been altered")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 1:
-            pass
-            # print(change.id, "- Staff has been deleted")
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_crmentity on jkitep_modtracker_basic.crmid = jkitep_crmentity.crmid and jkitep_modtracker_basic.id = " + changeID)
+            teacher = models.CustomUser.objects.get(username=str(specificChanges[0].smownerid)+"teacher").delete()
+            print(change.id, "- Staff has been deleted")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "SchoolClasses":
-        continue # Done
         if change.status == 2:
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
@@ -200,16 +212,30 @@ for change in changes:
             print(change.id, "- Cohort has been created")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 0:
-            pass
-            # print(change.id, "- Cohort has been altered")
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
+            for specificChange in specificChanges:
+                if specificChange.fieldname == "label":
+                    cohort = models.Cohort.objects.get(jkitepClassID=specificChange.crmid)
+                    cohort.class_name = specificChange.postvalue
+                    cohort.save()
+                if specificChange.fieldname == "school_id":
+                    cohort = models.Cohort.objects.get(jkitepClassID=specificChange.crmid)
+                    cohort.school_creator = models.CustomUser.objects.get(username=str(specificChange.postvalue)+"school")
+                    cohort.save()
+                if specificChange.fieldname == "assigned_user_id":
+                    cohort = models.Cohort.objects.get(jkitepClassID=specificChange.crmid)
+                    cohort.mainTeacherID = models.CustomUser.objects.get(username=str(specificChange.postvalue)+"teacher").mainTeacher
+                    cohort.save()
+            print(change.id, "- Cohort has been altered")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 1:
-            pass
-            # print(change.id, "- Cohort has been deleted")
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id = " + changeID)
+            models.Cohort.objects.get(jkitepClassID=specificChanges[0].crmid).delete()
+            print(change.id, "- Cohort has been deleted")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "Contacts":
+
         if change.status == 2:
-            continue # Done
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             for specificChange in specificChanges:
                 if specificChange.fieldname == "label":
@@ -228,18 +254,30 @@ for change in changes:
                 a = requests.post(url = "http://127.0.0.1:8080/api/v1/students/", data = data)
             print(change.id, "- Student has been created")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
-
         elif change.status == 0:
-            pass
+            continue
+            # specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
+            # for specificChange in specificChanges:
+            #     if specificChange.fieldname == "label":
+            #         print(specificChange.prevalue)
+            #         studentPreviousName = specificChange.prevalue
+            #         studentName = specificChange.postvalue
+            #     if specificChange.fieldname == "school_class_id":
+            #         previousCohort = specificChange.prevalue
+            #         currentCohort = specificChange.postvalue
+            #     if specificChange.fieldname == "assigned_user_id":
+            #         previousTeacher = specificChange.prevalue
+            #         currentTeacher = specificChange.postvalue
+            # student = models.Student.objects.get(studentName=studentPreviousName)
+            # print(student.studentName)
             # print(change.id, "- Student has been altered")
-            models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
+            # models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 1:
-            pass
+            continue
             # print(change.id, "- Student has been deleted")
-            models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
+            # models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     elif change.module == "Accounts":
         if change.status == 2:
-            continue # Done
             specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
             parentUsername = str(specificChanges[0].crmid) + "parent"
             for specificChange in specificChanges:
@@ -254,13 +292,20 @@ for change in changes:
             print(change.id, "- Parent has been created")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
         elif change.status == 0:
-            pass
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` INNER JOIN jkitep_modtracker_detail on jkitep_modtracker_detail.id = jkitep_modtracker_basic.id and jkitep_modtracker_basic.id = " + changeID)
+            for specificChange in specificChanges:
+                if specificChange.fieldname == "label":
+                    parent = models.CustomUser.objects.get(username=str(specificChange.crmid)+"parent")
+                    parent.name = specificChange.postvalue
+                    parent.save()
+            print(change.id, "- Parent has been altered")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
-            # print(change.id, "- Parent has been altered")
         elif change.status == 1:
-            pass
+            specificChanges = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id = " + changeID)
+            models.CustomUser.objects.get(username=str(specificChanges[0].crmid)+"parent").delete()
+            print(change.id, "- Parent has been deleted")
             models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
-            # print(change.id, "- Parent has been deleted")
+
 
 # При создании школы -> modtracker_basic "module = Schools" and "status = 2"
 # При изменении школы -> modtracker_basic "module = Schools" and "status = 0"
@@ -283,27 +328,38 @@ for change in changes:
 # При удалении родителя "module = Accounts" and "status = 1"
 
 #############################
-# Скрипт берет расписание текущего дня и копирует на следующую неделю соответсвенного дня
-today = datetime.date.today()
-oneWeekLater = today + datetime.timedelta(days=7)
-todaysLessons = models.Timetable.objects.filter(date=today)
-for lesson in todaysLessons:
-    futureLesson = models.Timetable.objects.filter(date=oneWeekLater, startTime=lesson.startTime)
-    if len(futureLesson) is 0:
-        lessonToCreate = lesson
-        lessonToCreate.date, lessonToCreate.pk  = oneWeekLater, None
-        lessonToCreate.save()
 
-# class Timetable(models.Model):
-#     db = 'default'
-#     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
-#     cohortID = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='timetable')
-#     date = models.DateField(null=True)
-#     startTime = models.TimeField(null=True)
-#     endTime = models.TimeField(null=True)
-#     homework = models.CharField(max_length = 100, default='')
-#     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='timetable', null=True)
-#     class Meta:
-#        ordering = ('date',)
-#        verbose_name_plural = "6. Расписание уроков"
-#     def __str__(self):
+# Скрипт берет расписание текущего дня и копирует на следующую неделю соответсвенного дня
+# today = datetime.date.today()
+# oneWeekLater = today + datetime.timedelta(days=7)
+# todaysLessons = models.Timetable.objects.filter(date=today)
+# for lesson in todaysLessons:
+#     futureLesson = models.Timetable.objects.filter(date=oneWeekLater, startTime=lesson.startTime)
+#     if len(futureLesson) is 0:
+#         lessonToCreate = lesson
+#         lessonToCreate.date, lessonToCreate.pk  = oneWeekLater, None
+#         lessonToCreate.save()
+
+#############################
+# from django.db.models import Avg
+#
+# student = models.Student.objects.get(pk=4)
+# #Average of all regular grades of a student
+# averageAllRegularGradesOneStudent = student.regularGrades.aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesOneStudent, "Average of all regular grades of a student")
+# #Average of all regular grades of students of one school
+# averageAllRegularGradesAllStudentsOneSchool = models.regularGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesAllStudentsOneSchool,"Average of all regular grades of students of one school")
+# #Average of all regular grades of all students from all schools
+# averageAllRegularGradesAllStudentsAllSchool = models.regularGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesAllStudentsAllSchool,"Average of all regular grades of all students from all schools")
+#
+# #Average of all final grades of a student
+# averageAllFinalGradesOneStudent = student.finalGrades.aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesOneStudent, "Average of all final grades of a student")
+# #Average of all final grades of students of one school
+# averageAllFinalGradesAllStudentsOneSchool = models.finalGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesAllStudentsOneSchool,"Average of all final grades of students of one school")
+# #Average of all final grades of all students from all schools
+# averageAllFinalGradesAllStudentsAllSchool = models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesAllStudentsAllSchool,"Average of all final grades of all students from all schools")
