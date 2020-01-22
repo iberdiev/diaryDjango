@@ -406,8 +406,12 @@ def subject_obj_add(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=finalGrade)
 def time_tbl_obj_add(sender, instance, created, **kwargs):
-    creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
 
+    if created:
+        creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
+
+#
+# # Signals that detect and log changes in forms.
 
 # # Signals that detect and log changes in forms.ч
 @receiver(pre_save, sender=Subject)
