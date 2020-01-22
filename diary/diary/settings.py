@@ -99,7 +99,8 @@ DATABASES = {
     },
     'test': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'book_test',
+        'NAME': 'book',
+        # 'NAME': 'book_test',
         'USER':  'iskender',
         'PASSWORD': 'H9OFGJVO5XMNomxy',
         'HOST': '139.162.190.143',

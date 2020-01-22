@@ -438,6 +438,23 @@ class GetStatisticsForStudent(APIView):
                 "allSchoolsRG": models.regularGrade.objects.all().aggregate(Avg('mark'))['mark__avg'],
                 "allSchoolsFG": models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg'],
                }
+        data["studentAvgRG"] = round(data["studentAvgRG"], 1)
+        data["studentAvgFG"] = round(data["studentAvgFG"], 1)
+        return Response(data)
+
+class GetTeacherDetails(APIView):
+    def get(self, request):
+        teacher = models.Teacher.objects.get(pk=self.request.query_params.get('pk'))
+        teacherName = teacher.teacherName
+        cohorts = teacher.mainCohorts
+        mainCohorts = serializers.CohortSerializer(cohorts, many=True).data
+        data = {
+            "teacherName": teacherName,
+            "teacherPhone": teacher.teacherID.phoneNumber,
+            "mainCohorts": mainCohorts,
+        }
+        # subjects = models.Cohort.objects.get(pk=cohort).subjects
+        # data = serializers.SubjectSerializer(subjects, many=True).data
         return Response(data)
 
 class LoginViaJKitep(APIView):
@@ -457,3 +474,8 @@ class LoginViaJKitep(APIView):
         # responsee = requests.post("https://test.kitep.org.kg/webservice.php",data=data)
 
         return Response(responsee)
+
+# GetTeacherDetails
+# pk -> teacherName
+# Классы
+# телефон

@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
 class Teacher(models.Model):
     db = 'default'
     teacherName = models.CharField(max_length = 100)
-    schoolID = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null = True, related_name='teachers')
+    schoolID = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null = True, related_name='teachers')
     teacherID = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, related_name='mainTeacher')
     class Meta:
        verbose_name_plural = "2. Учителя"
@@ -41,7 +41,7 @@ class Teacher(models.Model):
 class Cohort(models.Model):
     db = 'default'
     school_creator = models.ForeignKey(CustomUser, on_delete = models.CASCADE, related_name='cohorts')
-    mainTeacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, related_name='mainCohorts')
+    mainTeacherID = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, related_name='mainCohorts')
     class_name = models.CharField(max_length = 100)
     jkitepClassID = models.IntegerField(null=True, unique=True)
     class Meta:
@@ -52,8 +52,8 @@ class Cohort(models.Model):
 class Student(models.Model):
     db = 'default'
     studentName = models.CharField(max_length = 100)
-    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='students')
-    parent = models.ForeignKey(CustomUser, null=True, on_delete=models.CASCADE, related_name='child')
+    cohort = models.ForeignKey(Cohort, on_delete=models.SET_NULL, null=True, related_name='students')
+    parent = models.ForeignKey(CustomUser, null=True, on_delete=models.SET_NULL, related_name='child')
     phoneNumber = models.CharField(default='', max_length=255)
     def __str__(self):
         return self.studentName
@@ -70,7 +70,7 @@ class Subject(models.Model):
     db = 'default'
     subjectName = models.CharField(max_length = 100)
     cohortID = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='subjects')
-    teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='subjects', null=True)
+    teacherID = models.ForeignKey(Teacher, on_delete=models.SET_NULL, related_name='subjects', null=True)
     def __str__(self):
         return  '%s - %s' % (self.cohortID, self.subjectName)
     class Meta:
@@ -83,8 +83,8 @@ class Timetable(models.Model):
     date = models.DateField(null=True)
     startTime = models.TimeField(null=True)
     endTime = models.TimeField(null=True)
-    homework = models.CharField(max_length = 100, default='')
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='timetable', null=True)
+    homework = models.CharField(max_length = 100, default='', null=True, blank=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, related_name='timetable', null=True)
     class Meta:
        ordering = ('date',)
        verbose_name_plural = "6. Расписание уроков"
@@ -94,10 +94,9 @@ class Timetable(models.Model):
 
 class regularGrade(models.Model):
     db = 'default'
-    lesson = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='regularGrades', null=True)
-    studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
-    # date = models.DateField(null=True)
-    teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
+    lesson = models.ForeignKey(Timetable, on_delete=models.SET_NULL, related_name='regularGrades', null=True)
+    studentID = models.ForeignKey(Student, on_delete=models.SET_NULL, related_name='regularGrades', null=True)
+    teacherID = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
     mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
     TYPE_CHOICES = (
         (1, 'Первая четверть'),
@@ -115,8 +114,8 @@ class regularGrade(models.Model):
 
 class finalGrade(models.Model):
     db = 'default'
-    subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True)
-    studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='finalGrades')
+    subjectID = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True)
+    studentID = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, related_name='finalGrades')
     mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
     TYPE_CHOICES = (
         (1, 'Первая четверть'),
@@ -131,23 +130,15 @@ class finalGrade(models.Model):
     def __str__(self):
         return  '%s - %s' % (self.subjectID, self.studentID)
 
-
-# class regularGrade(models.Model):
-#     db = 'default'
-#     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='regularGrades')
-#     studentID = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='regularGrades')
-#     date = models.DateField(null=True)
-#     teacherID = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
-#     mark = models.IntegerField(validators=[MaxValueValidator(5), MinValueValidator(2)])
-#     TYPE_CHOICES = (
-#         (1, 'Первая четверть'),
-#         (2, 'Вторая четверть'),
-#         (3, 'Третья четверть'),
-#         (4, 'Четвертая четверть'),
-#         (5, 'Итог'),
-#         (6, 'Повседневная оценка'),
-#     )
-#     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=6)
+class ModTrackerDjango(models.Model):
+    db = 'default'
+    prevalue = models.CharField(max_length = 250, default = '')
+    postvalue = models.CharField(max_length = 250)
+    model = models.CharField(max_length = 250)
+    attribute = models.CharField(max_length = 250)
+    action = models.CharField(max_length = 250)
+    def __str__(self):
+        return "%s: %s - %s - %s -> %s" %(self.action, self.model, self.attribute, self.prevalue, self.postvalue)
 
 
 class JkitepSchools(models.Model):
@@ -169,7 +160,6 @@ class JkitepSchools(models.Model):
     school_address = models.CharField(max_length=200, blank=True, null=True)
     school_named = models.CharField(max_length=100, blank=True, null=True)
     region_school_id = models.CharField(max_length=100, blank=True, null=True)
-    omsu = models.CharField(max_length=100, blank=True, null=True)
     bdate = models.DateField(blank=True, null=True)
     startbalance = models.CharField(max_length=100, blank=True, null=True)
     okpo = models.CharField(max_length=100, blank=True, null=True)
@@ -314,6 +304,7 @@ class JkitepContactdetails(models.Model):
         managed = False
         db_table = 'jkitep_contactdetails'
 
+
 class JkitepCrmentity(models.Model):
     db = 'test'
     crmid = models.IntegerField(primary_key=True)
@@ -384,6 +375,7 @@ class JkitepModtrackerBasic(models.Model):
         managed = False
         db_table = 'jkitep_modtracker_basic'
 
+
 class LastChangeInJkitepModtrackerBasic(models.Model):
     db = 'default'
     id = models.IntegerField(primary_key=True)
@@ -392,71 +384,90 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
 
 
 # Signals that detect and log creating new users.
-@receiver(post_save, sender=Subject)
-def subject_obj_add(sender, instance, created, **kwargs):
-    creations_logger.info(f'УРОК \"{instance}\" был успешно добавлен!')
+# @receiver(post_save, sender=Subject)
+# def subject_obj_add(sender, instance, created, **kwargs):
+#     if created:
+#         if instance.subjectName:
+#             ModTrackerDjango.objects.create(postvalue=instance.subjectName, model="Предмет", attribute="Название", action="Создание")
+#         if instance.cohortID:
+#             ModTrackerDjango.objects.create(postvalue=instance.cohortID.class_name, model="Предмет", attribute="Класс", action="Создание")
+#         if instance.teacherID:
+#             ModTrackerDjango.objects.create(postvalue=instance.teacherID.teacherName, model="Предмет", attribute="Учитель", action="Создание")
 
-@receiver(post_save, sender=Timetable)
-def time_tbl_obj_add(sender, instance, created, **kwargs):
-    creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
+# prevalue = models.CharField(max_length = 250)
+# postvalue = models.CharField(max_length = 250)
+# model = models.CharField(max_length = 250)
+# attribute = models.CharField(max_length = 250)
+# action = models.CharField(max_length = 250)
 
-@receiver(post_save, sender=regularGrade)
-def subject_obj_add(sender, instance, created, **kwargs):
-    creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешно добавлена!')
-
-@receiver(post_save, sender=finalGrade)
-def time_tbl_obj_add(sender, instance, created, **kwargs):
-
-    if created:
-        creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
+# @receiver(post_save, sender=Timetable)
+# def time_tbl_obj_add(sender, instance, created, **kwargs):
+#     creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
+#
+# @receiver(post_save, sender=regularGrade)
+# def subject_obj_add(sender, instance, created, **kwargs):
+#     creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешно добавлена!')
+#
+# @receiver(post_save, sender=finalGrade)
+# def time_tbl_obj_add(sender, instance, created, **kwargs):
+#
+#     if created:
+#         creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
 
 #
 # # Signals that detect and log changes in forms.
 
 # # Signals that detect and log changes in forms.ч
-@receiver(pre_save, sender=Subject)
-def subject_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Subject.objects.get(pk=instance.pk)
-        updates_logger.info(f"Данные УРОКА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-
-@receiver(pre_save, sender=Timetable)
-def time_tbl_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Timetable.objects.get(pk=instance.pk)
-        updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-
-@receiver(pre_save, sender=regularGrade)
-def subject_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = regularGrade.objects.get(pk=instance.pk)
-        updates_logger.info(f"Учитель \"{instance.teacherID}\" изменил ОБЫЧНУЮ оценку урока \"{str(instance.lesson).split(' ')[-1]}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
-
-@receiver(pre_save, sender=finalGrade)
-def time_tbl_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = finalGrade.objects.get(pk=instance.pk)
-        updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
+# @receiver(pre_save, sender=Subject)
+# def subject_obj_update(sender, instance, **kwargs):
+#     if not instance._state.adding:
+#         unchanged = Subject.objects.get(pk=instance.pk)
+#         updates_logger.info(f"Данные УРОКА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
+#
+# @receiver(pre_save, sender=Timetable)
+# def time_tbl_obj_update(sender, instance, **kwargs):
+#     if not instance._state.adding:
+#         unchanged = Timetable.objects.get(pk=instance.pk)
+#         updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
+#
+# from reversion.signals import post_revision_commit
+# import reversion
+# @receiver(pre_save, sender=regularGrade)
+# def post_revision_commit(sender, **kwargs):
+#     if reversion.is_active():
+#         print(reversion.get_user())
+#
+# # def subject_obj_update(sender, instance, **kwargs):
+# #     if not instance._state.adding:
+# #         unchanged = regularGrade.objects.get(pk=instance.pk)
+# #         updates_logger.info(f"Учитель \"{instance.teacherID}\" изменил ОБЫЧНУЮ оценку урока \"{str(instance.lesson).split(' ')[-1]}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
+#
+#
+# @receiver(pre_save, sender=finalGrade)
+# def time_tbl_obj_update(sender, instance, **kwargs):
+#     if not instance._state.adding:
+#         unchanged = finalGrade.objects.get(pk=instance.pk)
+#         updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
 
 
 
 # Signals that detect and log detetions of users.
 
-@receiver(pre_delete, sender=Subject)
-def subject_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'УРОК \"{instance}\" был успешно удалён!')
-
-@receiver(pre_delete, sender=Timetable)
-def time_tbl_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
-
-@receiver(pre_delete, sender=regularGrade)
-def subject_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешна удалёна!')
-
-@receiver(pre_delete, sender=finalGrade)
-def time_tbl_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
+# @receiver(pre_delete, sender=Subject)
+# def subject_obj_remove(sender, instance, **kwargs):
+#     deletions_logger.info(f'УРОК \"{instance}\" был успешно удалён!')
+#
+# @receiver(pre_delete, sender=Timetable)
+# def time_tbl_obj_remove(sender, instance, **kwargs):
+#     deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
+#
+# @receiver(pre_delete, sender=regularGrade)
+# def subject_obj_remove(sender, instance, **kwargs):
+#     deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешна удалёна!')
+#
+# @receiver(pre_delete, sender=finalGrade)
+# def time_tbl_obj_remove(sender, instance, **kwargs):
+#     deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
 
 #Django signal examples (does not work if model is from remote db)
 # @receiver(post_save, sender=JkitepModtrackerBasic)

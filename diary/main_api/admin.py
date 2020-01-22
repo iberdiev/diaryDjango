@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import (CustomUser,Cohort,Student,Subject,Teacher,regularGrade,Timetable,finalGrade,LastChangeInJkitepModtrackerBasic,
-    JkitepSchools, JkitepSchoolclasses, JkitepSchoolstaff, JkitepContactdetails, JkitepCrmentity)
+    JkitepSchools, JkitepSchoolclasses, JkitepSchoolstaff, JkitepContactdetails, JkitepCrmentity, ModTrackerDjango)
 
 
 class CustomUserAdmin(UserAdmin):
@@ -41,3 +41,4 @@ admin.site.register(regularGrade)
 admin.site.register(Timetable)
 admin.site.register(finalGrade)
 admin.site.register(LastChangeInJkitepModtrackerBasic)
+admin.site.register(ModTrackerDjango)

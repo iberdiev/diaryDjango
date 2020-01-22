@@ -17,15 +17,15 @@ from main_api import models
 #            "user_role": 1,
 #            "password1":schoolName,
 #            "password2":schoolName}
-    # a = requests.post(url = URL, data = data)
+#     a = requests.post(url = URL, data = data)
 
 #############################
 #Registering all availabe parents
 
 # URL = "http://127.0.0.1:8080/api/v1/registration/"
 # parents = models.JkitepAccount.objects.raw("SELECT * FROM `jkitep_account` INNER JOIN jkitep_crmentity on jkitep_account.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0'")
-
-
+# # parents = models.JkitepAccount.objects.raw("SELECT * FROM `jkitep_account` INNER JOIN jkitep_crmentity on jkitep_account.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' INNER JOIN jkitep_contactdetails on jkitep_contactdetails.accountid = jkitep_account.accountid and jkitep_contactdetails.school_id = 683")
+#
 # for parent in parents:
 #    name = parent.accountname
 #    asdf = str(parent.accountid.crmid) + "parent"
@@ -62,12 +62,11 @@ from main_api import models
 #     teacherID = models.CustomUser.objects.get(username=str(teacher.employees_id_user) + "teacher")
 #     models.Teacher.objects.create(teacherName=name, schoolID=schoolID, teacherID=teacherID)
 
-#############################
+############################
 # Setting all the passwords of all users to their username
 
 # users = models.CustomUser.objects.all()
 # for user in users:
-#     print(user.pk)
 #     user.set_password(user.username)
 #     user.save()
 
@@ -75,7 +74,7 @@ from main_api import models
 # Getting and saving all cohorts + attaching them to schools.CustomerUser and teachers.Teacher
 
 # URL = "http://127.0.0.1:8080/api/v1/get_cohorts/"
-# cohorts = models.JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id IS NOT NULL")
+# cohorts = models.JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id IS NOT NULL and school_id = 683")
 # for cohort in cohorts:
 #     class_name = cohort.label
 #     schoolID = str(cohort.school_id) + "school"
@@ -93,19 +92,21 @@ from main_api import models
 
 #############################
 # Getting and saving all students + attaching to parents and cohorts
-
+#
 # URL = "http://127.0.0.1:8080/api/v1/students/"
 # students = models.JkitepContactdetails.objects.raw("SELECT * FROM `jkitep_contactdetails` INNER JOIN jkitep_crmentity on jkitep_contactdetails.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_class_id IS NOT NULL")
 # for student in students:
 #     print(student.school_class_id)
 #     name = "{} {}".format(student.lastname, student.firstname)
-#     if not models.Cohort.objects.filter(jkitepClassID=student.school_class_id).exists():
-#         continue
-#     cohortID = models.Cohort.objects.get(jkitepClassID=student.school_class_id).pk
-#     parentID = models.CustomUser.objects.get(username=str(student.accountid)+"parent")
-#     data = {"studentName": name,"cohort": cohortID,"parent": parentID}
-#     a = requests.post(url = URL, data = data)
-#     print(a.text)
+#
+#     if (student.school_class_id):
+#         if not models.Cohort.objects.filter(jkitepClassID=student.school_class_id).exists():
+#             continue
+#         cohortID = models.Cohort.objects.get(jkitepClassID=student.school_class_id).pk
+#         parentID = models.CustomUser.objects.get(username=str(student.accountid)+"parent")
+#         data = {"studentName": name,"cohort": cohortID,"parent": parentID}
+#         a = requests.post(url = URL, data = data)
+#         print(a.text)
 
 #############################
 # Script that checks all the changes in JkitepDB and applies them in djangoDB
@@ -341,38 +342,38 @@ from main_api import models
 #         lessonToCreate.save()
 
 #############################
-from django.db.models import Avg
+# from django.db.models import Avg
+# #
+# student = models.Student.objects.get(pk=4)
 #
-student = models.Student.objects.get(pk=4)
-
-# Average of all regular grades of a student
-averageAllRegularGradesOneStudent = student.regularGrades.aggregate(Avg('mark'))['mark__avg']
-print(averageAllRegularGradesOneStudent, "Average of all regular grades of a student")
-
-# Average of all regular grades of cohort
-averageAllRegularGradesOneCohort = models.regularGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg']
-print(averageAllRegularGradesOneCohort, "Average of all regular grades of one cohort")
-
-#Average of all regular grades of students of one school
-averageAllRegularGradesAllStudentsOneSchool = models.regularGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
-print(averageAllRegularGradesAllStudentsOneSchool,"Average of all regular grades of students of one school")
-
-#Average of all regular grades of all students from all schools
-averageAllRegularGradesAllStudentsAllSchool = models.regularGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
-print(averageAllRegularGradesAllStudentsAllSchool,"Average of all regular grades of all students from all schools")
-
-#Average of all final grades of a student
-averageAllFinalGradesOneStudent = student.finalGrades.aggregate(Avg('mark'))['mark__avg']
-print(averageAllFinalGradesOneStudent, "Average of all final grades of a student")
-
-# Average of all final grades of cohort
-averageAllFinalGradesOneCohort = models.finalGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg']
-print(averageAllFinalGradesOneCohort, "Average of all final grades of one cohort")
-
-#Average of all final grades of students of one school
-averageAllFinalGradesAllStudentsOneSchool = models.finalGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
-print(averageAllFinalGradesAllStudentsOneSchool,"Average of all final grades of students of one school")
-
-#Average of all final grades of all students from all schools
-averageAllFinalGradesAllStudentsAllSchool = models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
-print(averageAllFinalGradesAllStudentsAllSchool,"Average of all final grades of all students from all schools")
+# # Average of all regular grades of a student
+# averageAllRegularGradesOneStudent = student.regularGrades.aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesOneStudent, "Average of all regular grades of a student")
+#
+# # Average of all regular grades of cohort
+# averageAllRegularGradesOneCohort = models.regularGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesOneCohort, "Average of all regular grades of one cohort")
+#
+# #Average of all regular grades of students of one school
+# averageAllRegularGradesAllStudentsOneSchool = models.regularGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesAllStudentsOneSchool,"Average of all regular grades of students of one school")
+#
+# #Average of all regular grades of all students from all schools
+# averageAllRegularGradesAllStudentsAllSchool = models.regularGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
+# print(averageAllRegularGradesAllStudentsAllSchool,"Average of all regular grades of all students from all schools")
+#
+# #Average of all final grades of a student
+# averageAllFinalGradesOneStudent = student.finalGrades.aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesOneStudent, "Average of all final grades of a student")
+#
+# # Average of all final grades of cohort
+# averageAllFinalGradesOneCohort = models.finalGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesOneCohort, "Average of all final grades of one cohort")
+#
+# #Average of all final grades of students of one school
+# averageAllFinalGradesAllStudentsOneSchool = models.finalGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesAllStudentsOneSchool,"Average of all final grades of students of one school")
+#
+# #Average of all final grades of all students from all schools
+# averageAllFinalGradesAllStudentsAllSchool = models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
+# print(averageAllFinalGradesAllStudentsAllSchool,"Average of all final grades of all students from all schools")

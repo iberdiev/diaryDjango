@@ -33,6 +33,7 @@ urlpatterns = [
     path('setPassword/', views.SetPasswordView.as_view()),
     path('callToNumber/', views.CallToNumber.as_view()),
     path('getStatisticsForStudent/', views.GetStatisticsForStudent.as_view()),
+    path('getTeacherDetails/', views.GetTeacherDetails.as_view()),
 
     path('loginViaJKitep/', views.LoginViaJKitep.as_view()),
     ]
