@@ -17,7 +17,7 @@ https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/
 
 import os, sys
 
-path='/var/www/html/diary_gjango'
+path='/var/www/html/diaryDjango'
 
 if path not in sys.path:
   sys.path.append(path)

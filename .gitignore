@@ -2,3 +2,4 @@ diary/diary/__pychache__/
 diary/main_api/__pychache__/
 diary/main_api/migrations/
 *.sqlite3
+diarry/main_api/logs
