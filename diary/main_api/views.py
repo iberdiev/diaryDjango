@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from django.utils.timezone import datetime
 import random, requests, hashlib
+from django.db.models import Avg
 
 
 
@@ -421,7 +422,21 @@ class CreateSubjectAndTimetable(APIView):
             timeTableSerializer.save()
         # {"newSubject":"Новый предмет","teacher":2, "cohortID": 2, "date" : "2020-01-09", "startTime": "15:40:00", "endTime": "15:45:00"}
         return Response("OK")
-# import md5
+
+class GetStatisticsForStudent(APIView):
+    def get(self, request):
+        student = models.Student.objects.get(pk=self.request.query_params.get('studentID'))
+        data = {"studentAvgRG": student.regularGrades.aggregate(Avg('mark'))['mark__avg'],
+                "studentAvgFG": student.finalGrades.aggregate(Avg('mark'))['mark__avg'],
+                "cohortAvgRG": models.regularGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg'],
+                "cohortAvgFG": models.finalGrade.objects.filter(studentID__cohort=student.cohort).aggregate(Avg('mark'))['mark__avg'],
+                "schoolAvgRG": models.regularGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg'],
+                "schoolAvgFG": models.finalGrade.objects.filter(studentID__cohort__school_creator=student.cohort.school_creator).aggregate(Avg('mark'))['mark__avg'],
+                "allSchoolsRG": models.regularGrade.objects.all().aggregate(Avg('mark'))['mark__avg'],
+                "allSchoolsFG": models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg'],
+               }
+        return Response(data)
+
 class LoginViaJKitep(APIView):
     # curl -d '{"username":"admin","password":"admin"}' -H "Content-Type: application/json" http://127.0.0.1:8080/api/v1/loginViaJKitep/
     def post(self, request):
