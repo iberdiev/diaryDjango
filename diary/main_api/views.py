@@ -94,7 +94,10 @@ class SubjectsListView(APIView):
 @permission_classes((IsAuthenticated, ))
 class TeachersListView(APIView):
     def get(self, request):
-        teachers = request.user.teachers
+        if request.user.user_role == 2:
+            teachers = request.user.mainTeacher.schoolID.teachers
+        elif request.user.user_role == 1:
+            teachers = request.user.teachers
         data = serializers.TeacherSerializer(teachers, many=True).data
         return Response(data)
     def post(self, request, format=None):

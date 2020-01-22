@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, post_delete, pre_save, pre_delete
 from django.dispatch import receiver
 import os, logging, platform
 from .loggers import (creations_logger, updates_logger, deletions_logger)
@@ -429,31 +429,31 @@ def time_tbl_obj_update(sender, instance, **kwargs):
 @receiver(pre_save, sender=regularGrade)
 def subject_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
-        unchanged = Subject.objects.get(pk=instance.pk)
+        unchanged = regularGrade.objects.get(pk=instance.pk)
         updates_logger.info(f"ОБЫЧНАЯ оценка \"{unchanged}\" изменена на \'{instance}\'.")
 
 @receiver(pre_save, sender=finalGrade)
 def time_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
-        unchanged = Timetable.objects.get(pk=instance.pk)
+        unchanged = finalGrade.objects.get(pk=instance.pk)
         updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
 #
 # Signals that detect and log detetions of users.
 
 
-@receiver(post_delete, sender=Subject)
+@receiver(pre_delete, sender=Subject)
 def subject_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'УРОК \"{instance}\" был успешно удалён!')
 
-@receiver(post_delete, sender=Timetable)
+@receiver(pre_delete, sender=Timetable)
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
 
-@receiver(post_delete, sender=regularGrade)
+@receiver(pre_delete, sender=regularGrade)
 def subject_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance}\" была успешна удалёна!')
 
-@receiver(post_delete, sender=finalGrade)
+@receiver(pre_delete, sender=finalGrade)
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
 
