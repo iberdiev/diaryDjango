@@ -10,7 +10,7 @@ if platform.system() == "Linux":
 #     PATH_TO_SAVE = '{}\\logs\\.log'.format(
 #         os.path.dirname(__file__))
 
-formatter = logging.Formatter("\n%(asctime)s: %(name)s | %(message)s")
+formatter = logging.Formatter("%(asctime)s: %(name)s | %(message)s")
 
 creations_logger = logging.getLogger('CreatesLoger')
 creations_logger.setLevel(logging.INFO)
