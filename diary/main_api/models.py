@@ -75,6 +75,7 @@ class Subject(models.Model):
         return  '%s - %s' % (self.cohortID, self.subjectName)
     class Meta:
        verbose_name_plural = "5. Предметы"
+
 class Timetable(models.Model):
     db = 'default'
     subjectID = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
@@ -390,26 +391,6 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
        verbose_name_plural = "ID Последнего изменения"
 
 # Signals that detect and log creating new users.
-@receiver(post_save, sender=CustomUser)
-def school_user_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'ШКОЛА \"{instance}\" была успешно добавлена!')
-
-@receiver(post_save, sender=Teacher)
-def teacher_user_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'УЧИТЕЛЬ \"{instance}\" был успешно добавлен!')
-
-@receiver(post_save, sender=Cohort)
-def cohort_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'КЛАСС \"{instance}\" был успешно добавлен!')
-
-@receiver(post_save, sender=Student)
-def student_user_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'УЧЕНИК \"{instance}\" был успешно добавлен!')
-
 @receiver(post_save, sender=Subject)
 def subject_obj_add(sender, instance, created, **kwargs):
     if created:
@@ -420,6 +401,16 @@ def time_tbl_obj_add(sender, instance, created, **kwargs):
     if created:
         creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
 
+@receiver(post_save, sender=regularGrade)
+def subject_obj_add(sender, instance, created, **kwargs):
+    if created:
+        creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance}\" была успешно добавлена!')
+
+@receiver(post_save, sender=finalGrade)
+def time_tbl_obj_add(sender, instance, created, **kwargs):
+    if created:
+        creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
+
 #
 # # Signals that detect and log changes in forms.
 @receiver(pre_save, sender=CustomUser)
@@ -428,23 +419,6 @@ def school_user_update(sender, instance, **kwargs):
         unchanged = CustomUser.objects.get(pk=instance.pk)
         updates_logger.info(f'Данные ПОЛЬЗОВАТЕЛЯ \"{unchanged}\" были успешно изменены на \'{instance}\'.')
 
-@receiver(pre_save, sender=Teacher)
-def teacher_user_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Teacher.objects.get(pk=instance.pk)
-        updates_logger.info(f"Данные УЧИТЕЛЯ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-
-@receiver(pre_save, sender=Cohort)
-def cohort_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Cohort.objects.get(pk=instance.pk)
-        updates_logger.info(f"Данные КЛАССА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-
-@receiver(pre_save, sender=Student)
-def student_user_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Student.objects.get(pk=instance.pk)
-        updates_logger.info(f"Данные УЧЕНИКА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
 
 @receiver(pre_save, sender=Subject)
 def subject_obj_update(sender, instance, **kwargs):
@@ -457,23 +431,21 @@ def time_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
         unchanged = Timetable.objects.get(pk=instance.pk)
         updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
+
+@receiver(pre_save, sender=regularGrade)
+def subject_obj_update(sender, instance, **kwargs):
+    if not instance._state.adding:
+        unchanged = Subject.objects.get(pk=instance.pk)
+        updates_logger.info(f"ОБЫЧНАЯ оценка \"{unchanged}\" изменена на \'{instance}\'.")
+
+@receiver(pre_save, sender=finalGrade)
+def time_tbl_obj_update(sender, instance, **kwargs):
+    if not instance._state.adding:
+        unchanged = Timetable.objects.get(pk=instance.pk)
+        updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
 #
 # Signals that detect and log detetions of users.
-@receiver(post_delete, sender=CustomUser)
-def school_user_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'ШКОЛА \"{instance}\" была успешно удалёна!')
 
-@receiver(post_delete, sender=Teacher)
-def teacher_user_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'УЧИТЕЛЬ \"{instance}\" был успешно удалён!')
-
-@receiver(post_delete, sender=Cohort)
-def cohort_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'КЛАСС \"{instance}\" был успешно удалён!')
-
-@receiver(post_delete, sender=Student)
-def student_user_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'УЧЕНИК \"{instance}\" был успешно удалён!')
 
 @receiver(post_delete, sender=Subject)
 def subject_obj_remove(sender, instance, **kwargs):
@@ -483,7 +455,13 @@ def subject_obj_remove(sender, instance, **kwargs):
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
 
+@receiver(post_delete, sender=regularGrade)
+def subject_obj_remove(sender, instance, **kwargs):
+    deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance}\" была успешна удалёна!')
 
+@receiver(post_delete, sender=finalGrade)
+def time_tbl_obj_remove(sender, instance, **kwargs):
+    deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
 
 #Django signal examples (does not work if model is from remote db)
 # @receiver(post_save, sender=JkitepModtrackerBasic)
