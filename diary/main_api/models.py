@@ -413,12 +413,6 @@ def time_tbl_obj_add(sender, instance, created, **kwargs):
 
 #
 # # Signals that detect and log changes in forms.
-@receiver(pre_save, sender=CustomUser)
-def school_user_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = CustomUser.objects.get(pk=instance.pk)
-        updates_logger.info(f'Данные ПОЛЬЗОВАТЕЛЯ \"{unchanged}\" были успешно изменены на \'{instance}\'.')
-
 
 @receiver(pre_save, sender=Subject)
 def subject_obj_update(sender, instance, **kwargs):
