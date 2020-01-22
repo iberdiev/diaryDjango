@@ -7,10 +7,22 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/
 """
 
-import os
+# import os
+#
+# from django.core.wsgi import get_wsgi_application
+#
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'diary.settings')
+#
+# application = get_wsgi_application()
 
-from django.core.wsgi import get_wsgi_application
+import os, sys
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'diary.settings')
+path='/var/www/html/diary_gjango'
 
-application = get_wsgi_application()
+if path not in sys.path:
+  sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'diary.settings'
+
+import django.core.handlers.wsgi
+application = django.core.handlers.wsgi.WSGIHandler()
