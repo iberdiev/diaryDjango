@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 import os, logging, platform
 from .loggers import (creations_logger, updates_logger, deletions_logger)
@@ -390,36 +390,26 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
     class Meta:
        verbose_name_plural = "ID Последнего изменения"
 
+
 # Signals that detect and log creating new users.
 @receiver(post_save, sender=Subject)
 def subject_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'УРОК \"{instance}\" был успешно добавлен!')
+    creations_logger.info(f'УРОК \"{instance}\" был успешно добавлен!')
 
 @receiver(post_save, sender=Timetable)
 def time_tbl_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
+    creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
 
 @receiver(post_save, sender=regularGrade)
 def subject_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance}\" была успешно добавлена!')
+    creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешно добавлена!')
 
 @receiver(post_save, sender=finalGrade)
 def time_tbl_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
-
-#
-# # Signals that detect and log changes in forms.
-@receiver(pre_save, sender=CustomUser)
-def school_user_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = CustomUser.objects.get(pk=instance.pk)
-        updates_logger.info(f'Данные ПОЛЬЗОВАТЕЛЯ \"{unchanged}\" были успешно изменены на \'{instance}\'.')
+    creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
 
 
+# # Signals that detect and log changes in forms.ч
 @receiver(pre_save, sender=Subject)
 def subject_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
@@ -435,31 +425,32 @@ def time_tbl_obj_update(sender, instance, **kwargs):
 @receiver(pre_save, sender=regularGrade)
 def subject_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
-        unchanged = Subject.objects.get(pk=instance.pk)
-        updates_logger.info(f"ОБЫЧНАЯ оценка \"{unchanged}\" изменена на \'{instance}\'.")
+        unchanged = regularGrade.objects.get(pk=instance.pk)
+        updates_logger.info(f"Учитель \"{instance.teacherID}\" изменил ОБЫЧНУЮ оценку урока \"{str(instance.lesson).split(' ')[-1]}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
 
 @receiver(pre_save, sender=finalGrade)
 def time_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
-        unchanged = Timetable.objects.get(pk=instance.pk)
+        unchanged = finalGrade.objects.get(pk=instance.pk)
         updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
-#
+
+
+
 # Signals that detect and log detetions of users.
 
-
-@receiver(post_delete, sender=Subject)
+@receiver(pre_delete, sender=Subject)
 def subject_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'УРОК \"{instance}\" был успешно удалён!')
 
-@receiver(post_delete, sender=Timetable)
+@receiver(pre_delete, sender=Timetable)
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
 
-@receiver(post_delete, sender=regularGrade)
+@receiver(pre_delete, sender=regularGrade)
 def subject_obj_remove(sender, instance, **kwargs):
-    deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance}\" была успешна удалёна!')
+    deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешна удалёна!')
 
-@receiver(post_delete, sender=finalGrade)
+@receiver(pre_delete, sender=finalGrade)
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
 
