@@ -382,39 +382,6 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
     class Meta:
        verbose_name_plural = "ID Последнего изменения"
 
-
-# Signals that detect and log creating new users.
-<<<<<<< HEAD
-# @receiver(post_save, sender=Subject)
-# def subject_obj_add(sender, instance, created, **kwargs):
-#     if created:
-#         if instance.subjectName:
-#             ModTrackerDjango.objects.create(postvalue=instance.subjectName, model="Предмет", attribute="Название", action="Создание")
-#         if instance.cohortID:
-#             ModTrackerDjango.objects.create(postvalue=instance.cohortID.class_name, model="Предмет", attribute="Класс", action="Создание")
-#         if instance.teacherID:
-#             ModTrackerDjango.objects.create(postvalue=instance.teacherID.teacherName, model="Предмет", attribute="Учитель", action="Создание")
-
-# prevalue = models.CharField(max_length = 250)
-# postvalue = models.CharField(max_length = 250)
-# model = models.CharField(max_length = 250)
-# attribute = models.CharField(max_length = 250)
-# action = models.CharField(max_length = 250)
-
-# @receiver(post_save, sender=Timetable)
-# def time_tbl_obj_add(sender, instance, created, **kwargs):
-#     creations_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно добавлено!')
-#
-# @receiver(post_save, sender=regularGrade)
-# def subject_obj_add(sender, instance, created, **kwargs):
-#     creations_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешно добавлена!')
-#
-# @receiver(post_save, sender=finalGrade)
-# def time_tbl_obj_add(sender, instance, created, **kwargs):
-#
-#     if created:
-#         creations_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешно добавлена!')
-=======
 @receiver(post_save, sender=Subject)
 def subject_obj_add(sender, instance, created, **kwargs):
     if created:
@@ -443,42 +410,7 @@ def teacher_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
         unchanged = Cohort.objects.get(pk=instance.pk)
         updates_logger.info(f"Школа \"{instance.mainTeacherID.schoolID}\" изменила учителя \"{unchanged.mainTeacherID}\" на учителя \"{instance.mainTeacherID}\" у класса \"{instance.class_name}\".")
->>>>>>> e622f9f93ea315c0bccd5f4f246332817909e98e
 
-
-<<<<<<< HEAD
-# # Signals that detect and log changes in forms.ч
-# @receiver(pre_save, sender=Subject)
-# def subject_obj_update(sender, instance, **kwargs):
-#     if not instance._state.adding:
-#         unchanged = Subject.objects.get(pk=instance.pk)
-#         updates_logger.info(f"Данные УРОКА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-#
-# @receiver(pre_save, sender=Timetable)
-# def time_tbl_obj_update(sender, instance, **kwargs):
-#     if not instance._state.adding:
-#         unchanged = Timetable.objects.get(pk=instance.pk)
-#         updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
-#
-# from reversion.signals import post_revision_commit
-# import reversion
-# @receiver(pre_save, sender=regularGrade)
-# def post_revision_commit(sender, **kwargs):
-#     if reversion.is_active():
-#         print(reversion.get_user())
-#
-# # def subject_obj_update(sender, instance, **kwargs):
-# #     if not instance._state.adding:
-# #         unchanged = regularGrade.objects.get(pk=instance.pk)
-# #         updates_logger.info(f"Учитель \"{instance.teacherID}\" изменил ОБЫЧНУЮ оценку урока \"{str(instance.lesson).split(' ')[-1]}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
-#
-#
-# @receiver(pre_save, sender=finalGrade)
-# def time_tbl_obj_update(sender, instance, **kwargs):
-#     if not instance._state.adding:
-#         unchanged = finalGrade.objects.get(pk=instance.pk)
-#         updates_logger.info(f"ИТОГОВАЯ оценка \"{unchanged}\" успешно изменена на \'{instance}\'.")
-=======
 @receiver(pre_save, sender=Subject)
 def subject_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
@@ -488,7 +420,7 @@ def subject_obj_update(sender, instance, **kwargs):
 @receiver(pre_save, sender=Timetable)
 def time_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
-        
+
         unchanged = Timetable.objects.get(pk=instance.pk)
 
         if unchanged.teacher != instance.teacher and unchanged.subjectID.subjectName == instance.subjectID.subjectName:
@@ -512,34 +444,9 @@ def finalGrades_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
         unchanged = finalGrade.objects.get(pk=instance.pk)
         updates_logger.info(f"Учитель \"{instance.subjectID.teacherID.teacherName}\" изменил ИТОГОВУЮ-оценку урока \"{instance.lesson.subjectID.subjectName}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
->>>>>>> e622f9f93ea315c0bccd5f4f246332817909e98e
 
 
 
-# Signals that detect and log detetions of users.
-
-<<<<<<< HEAD
-# @receiver(pre_delete, sender=Subject)
-# def subject_obj_remove(sender, instance, **kwargs):
-#     deletions_logger.info(f'УРОК \"{instance}\" был успешно удалён!')
-#
-# @receiver(pre_delete, sender=Timetable)
-# def time_tbl_obj_remove(sender, instance, **kwargs):
-#     deletions_logger.info(f'РАСПИСАНИЕ \"{instance}\" было успешно удалёно!')
-#
-# @receiver(pre_delete, sender=regularGrade)
-# def subject_obj_remove(sender, instance, **kwargs):
-#     deletions_logger.info(f'ОБЫЧНАЯ оценка \"{instance.mark}\" была успешна удалёна!')
-#
-# @receiver(pre_delete, sender=finalGrade)
-# def time_tbl_obj_remove(sender, instance, **kwargs):
-#     deletions_logger.info(f'ИТОГОВАЯ оценка \"{instance}\" была успешна удалёна!')
-
-#Django signal examples (does not work if model is from remote db)
-# @receiver(post_save, sender=JkitepModtrackerBasic)
-# def synchronization(sender, instance, created, **kwargs):
-#     print("Created: ", created)
-=======
 @receiver(pre_delete, sender=Subject)
 def subject_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f"Учитель \"{instance.teacherID.teacherName}\" удалил УРОК \"{instance.subjectName}\" у \"{instance.cohortID.class_name}\" класса.")
@@ -555,4 +462,3 @@ def regularGrades_obj_remove(sender, instance, **kwargs):
 @receiver(pre_delete, sender=finalGrade)
 def finalGrades_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" удалил ГОДОВУЮ-ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученика \"{instance.studentID.studentName}\".')
->>>>>>> e622f9f93ea315c0bccd5f4f246332817909e98e
