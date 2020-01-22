@@ -452,11 +452,11 @@ def subject_obj_update(sender, instance, **kwargs):
         unchanged = Subject.objects.get(pk=instance.pk)
         updates_logger.info(f"Данные УРОКА успешно изменены с \"{unchanged}\" на \'{instance}\'.")
 
-# @receiver(pre_save, sender=Timetable)
-# def time_tbl_obj_update(sender, instance, **kwargs):
-#     if not instance._state.adding:
-#         unchanged = Timetable.objects.get(pk=instance.pk)
-#         updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
+@receiver(pre_save, sender=Timetable)
+def time_tbl_obj_update(sender, instance, **kwargs):
+    if not instance._state.adding:
+        unchanged = Timetable.objects.get(pk=instance.pk)
+        updates_logger.info(f"Данные РАСПИСАНИЕ успешно изменены с \"{unchanged}\" на \'{instance}\'.")
 #
 # Signals that detect and log detetions of users.
 @receiver(post_delete, sender=CustomUser)
