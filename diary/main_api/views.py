@@ -440,6 +440,8 @@ class GetStatisticsForStudent(APIView):
                }
         data["studentAvgRG"] = round(data["studentAvgRG"], 1)
         data["studentAvgFG"] = round(data["studentAvgFG"], 1)
+        for num in data:
+            print(data[num])
         return Response(data)
 
 class GetTeacherDetails(APIView):
