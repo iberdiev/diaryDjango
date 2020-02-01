@@ -5,3 +5,4 @@ diary/main_api/migrations/
 diarry/main_api/logs
 myvenv/
 diary/static/
+diary/celerybeat-schedule.db
