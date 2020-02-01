@@ -25,9 +25,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '@g98=_k+q*!kot122l@$moo^irqsoq#u$ik6wj7okf#gbx=002'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+# DEBUG = False
 
-ALLOWED_HOSTS = ['*','192.168.0.106']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'main_api',
     'social_django',
+    'celery',
     ]
 
 
@@ -150,6 +151,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -188,28 +193,23 @@ CELERY_TASK_SERIALIZER = 'json'
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 587
+
 EMAIL_HOST_USER = 'onlinediaryputinbyte@yandex.ru'
 EMAIL_HOST_PASSWORD = 'FuckingAsshole'
+
 EMAIL_USE_TLS = True
 
 
 # Other Celery settings
 CELERY_BEAT_SCHEDULE = {
-    'task-number-one': {
-        'task': 'main_api.tasks.synchronizationWithJKitepDB',
-        'schedule': crontab(minute=55, hour=23),
-        # 'schedule': datetime.timedelta(seconds=30),
-    },
+#    'task-number-one': {
+ #       'task': 'main_api.tasks.synchronizationWithJKitepDB',
+        #'schedule': crontab(minute=55, hour=23),
+  #      'schedule': datetime.timedelta(minutes=2),
+#    },
     'task-number-two': {
         'task': 'main_api.tasks.duplicateTodaysLessonsToNextWeek',
         'schedule': crontab(minute=55, hour=22),
-         # 'schedule': datetime.timedelta(minutes=30)
+    #    'schedule': datetime.timedelta(seconds=10)
     },
-    # 'task-number-one': {
-    #     'task': 'main_api.tasks.periodicPrintHelloWorld',
-    #     # 'schedule': crontab(minute='*/15'),
-    #     'schedule': datetime.timedelta(minutes=30),
-    #     # 'schedule': crontab(minute=0, hour=0),
-    # },
-
 }

@@ -20,6 +20,22 @@ from main_api import models
 #     a = requests.post(url = URL, data = data)
 
 #############################
+# Registering all availabe schools # 68
+
+URL = "http://diary.putinbyte.com:8000/api/v1/registration/"
+schools = models.JkitepSchools.objects.raw("SELECT * FROM `jkitep_schools` INNER JOIN jkitep_crmentity on jkitep_schools.schoolsid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = 0 and schoolsid = 683" )
+for school in schools:
+
+    schoolName = str(school.schoolsid)+"school"
+
+    data = {"name": school.label,
+           "username":schoolName,
+           "user_role": 1,
+           "password1":schoolName,
+           "password2":schoolName}
+    a = requests.post(url = URL, data = data)
+
+#############################
 #Registering all availabe parents
 
 # URL = "http://127.0.0.1:8080/api/v1/registration/"
@@ -35,6 +51,22 @@ from main_api import models
 #            "password1":asdf,
 #            "password2":asdf}
 #    a = requests.post(url = URL, data = data)
+#
+# #############################
+#Registering all availabe parents #68
+URL = "http://diary.putinbyte.com:8000/api/v1/registration/"
+# parents = models.JkitepAccount.objects.raw("SELECT * FROM `jkitep_account` INNER JOIN jkitep_crmentity on jkitep_account.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0'")
+parents = models.JkitepAccount.objects.raw("SELECT * FROM `jkitep_account` INNER JOIN jkitep_crmentity on jkitep_account.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' INNER JOIN jkitep_contactdetails on jkitep_contactdetails.accountid = jkitep_account.accountid and jkitep_contactdetails.school_id = 683")
+
+for parent in parents:
+   name = parent.accountname
+   asdf = str(parent.accountid.crmid) + "parent"
+   data = {"username": asdf,
+           "name": str(name),
+           "user_role": 3,
+           "password1":asdf,
+           "password2":asdf}
+   a = requests.post(url = URL, data = data)
 
 #############################
 # Registering all teachers + adding Teacher models by connecting to Account.CustomUser + School.CustomUser
@@ -63,12 +95,40 @@ from main_api import models
 #     models.Teacher.objects.create(teacherName=name, schoolID=schoolID, teacherID=teacherID)
 
 ############################
-# Setting all the passwords of all users to their username
+#68
+# Registering all teachers + adding Teacher models by connecting to Account.CustomUser + School.CustomUser
 
-# users = models.CustomUser.objects.all()
-# for user in users:
-#     user.set_password(user.username)
-#     user.save()
+URL = "http://diary.putinbyte.com:8000/api/v1/registration/"
+teachers = models.JkitepSchoolstaff.objects.raw("SELECT * FROM `jkitep_schoolstaff` INNER JOIN jkitep_crmentity on jkitep_schoolstaff.schoolstaffid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id = 683")
+for teacher in teachers:
+    username = str(teacher.employees_id_user) + "teacher"
+    if teacher.label:
+        name = teacher.label
+    else:
+        name = teacher.firstname + teacher.lastname
+    data = {"username": username,
+            "name": name,
+            "user_role": 2,
+            "password1":username,
+            "password2":username}
+    print(username)
+    a = requests.post(url = URL, data = data)
+    print(a.text)
+    if teacher.school_id:
+        schoolID = models.CustomUser.objects.get(username=str(teacher.school_id) + "school")
+    else:
+        schoolID = None
+    teacherID = models.CustomUser.objects.get(username=str(teacher.employees_id_user) + "teacher")
+    models.Teacher.objects.create(teacherName=name, schoolID=schoolID, teacherID=teacherID)
+
+############################
+#
+# Setting all the passwords of all users to their username
+#
+users = models.CustomUser.objects.all()
+for user in users:
+    user.set_password(user.username)
+    user.save()
 
 #############################
 # Getting and saving all cohorts + attaching them to schools.CustomerUser and teachers.Teacher
@@ -91,6 +151,27 @@ from main_api import models
 #     print(a.text)
 
 #############################
+
+# Getting and saving all cohorts + attaching them to schools.CustomerUser and teachers.Teacher
+#68
+URL = "http://diary.putinbyte.com:8000/api/v1/get_cohorts/"
+cohorts = models.JkitepSchoolclasses.objects.raw("SELECT * FROM `jkitep_schoolclasses` INNER JOIN jkitep_crmentity on jkitep_schoolclasses.schoolclassesid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_id IS NOT NULL and school_id = 683")
+for cohort in cohorts:
+    class_name = cohort.label
+    schoolID = str(cohort.school_id) + "school"
+    teacherID = str(cohort.smownerid) + "teacher"
+    school_creator = models.CustomUser.objects.get(username=schoolID)
+    if not models.CustomUser.objects.filter(username=teacherID).exists():
+        continue
+    mainTeacherID = models.CustomUser.objects.get(username=teacherID).mainTeacher.pk
+    data = {"class_name": class_name,
+            "mainTeacherID": mainTeacherID,
+            "schoolID": schoolID,
+            "jkitepClassID": cohort.schoolclassesid}
+    a = requests.post(url = URL, data = data)
+    print(a.text)
+
+#############################
 # Getting and saving all students + attaching to parents and cohorts
 #
 # URL = "http://127.0.0.1:8080/api/v1/students/"
@@ -109,6 +190,23 @@ from main_api import models
 #         print(a.text)
 
 #############################
+URL = "http://diary.putinbyte.com:8000/api/v1/students/"
+students = models.JkitepContactdetails.objects.raw("SELECT * FROM `jkitep_contactdetails` INNER JOIN jkitep_crmentity on jkitep_contactdetails.accountid = jkitep_crmentity.crmid and jkitep_crmentity.deleted = '0' and school_class_id IS NOT NULL and school_id = 683")
+for student in students:
+    print(student.school_class_id)
+    name = "{} {}".format(student.lastname, student.firstname)
+
+    if (student.school_class_id):
+        if not models.Cohort.objects.filter(jkitepClassID=student.school_class_id).exists():
+            continue
+        cohortID = models.Cohort.objects.get(jkitepClassID=student.school_class_id).pk
+        parentID = models.CustomUser.objects.get(username=str(student.accountid)+"parent")
+        data = {"studentName": name,"cohort": cohortID,"parent": parentID}
+        a = requests.post(url = URL, data = data)
+        print(a.text)
+
+#############################
+
 # Script that checks all the changes in JkitepDB and applies them in djangoDB
 
 # lastChangeID = str(models.LastChangeInJkitepModtrackerBasic.objects.last().id)
@@ -377,3 +475,4 @@ from main_api import models
 # #Average of all final grades of all students from all schools
 # averageAllFinalGradesAllStudentsAllSchool = models.finalGrade.objects.all().aggregate(Avg('mark'))['mark__avg']
 # print(averageAllFinalGradesAllStudentsAllSchool,"Average of all final grades of all students from all schools")
+
