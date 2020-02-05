@@ -382,64 +382,64 @@ class LastChangeInJkitepModtrackerBasic(models.Model):
     class Meta:
        verbose_name_plural = "ID Последнего изменения"
 
-@receiver(post_save, sender=Subject)
-def subject_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'Учитель \"{instance.teacherID.teacherName}\" добавил УРОК \"{instance.subjectName}\" классу \"{instance.cohortID.class_name}\".')
+#@receiver(post_save, sender=Subject)
+#def subject_obj_add(sender, instance, created, **kwargs):
+ #   if created:
+  #      creations_logger.info(f'Учитель \"{instance.teacherID.teacherName}\" добавил УРОК \"{instance.subjectName}\" классу \"{instance.cohortID.class_name}\".')
 
-@receiver(post_save, sender=Timetable)
-def time_tbl_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" добавил в РАСПИСАНИЕ урок \"{instance.subjectID.subjectName}\" на \"{instance.date}\" с \"{instance.startTime}\" до \"{instance.endTime}\" классу \"{instance.cohortID.class_name}\".')
+#@receiver(post_save, sender=Timetable)
+#def time_tbl_obj_add(sender, instance, created, **kwargs):
+ #   if created:
+  #      creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" добавил в РАСПИСАНИЕ урок \"{instance.subjectID.subjectName}\" на \"{instance.date}\" с \"{instance.startTime}\" до \"{instance.endTime}\" классу \"{instance.cohortID.class_name}\".')
 
-@receiver(post_save, sender=regularGrade)
-def regularGrades_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" поставил ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученику \"{instance.studentID.studentName}\" за урок \"{instance.lesson.subjectID.subjectName}\".')
+#@receiver(post_save, sender=regularGrade)
+#def regularGrades_obj_add(sender, instance, created, **kwargs):
+ #   if created:
+  #      creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" поставил ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученику \"{instance.studentID.studentName}\" за урок \"{instance.lesson.subjectID.subjectName}\".')
 
-@receiver(post_save, sender=finalGrade)
-def finalGrade_obj_add(sender, instance, created, **kwargs):
-    if created:
-        creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" поставил ГОДОВУЮ-ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученику \"{instance.studentID.studentName}\" за урок \"{instance.subjectID.subjectName}\".')
+#@receiver(post_save, sender=finalGrade)
+#def finalGrade_obj_add(sender, instance, created, **kwargs):
+#    if created:
+#        creations_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" поставил ГОДОВУЮ-ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученику \"{instance.studentID.studentName}\" за урок \"{instance.subjectID.subjectName}\".')
 
 
 
 # Signals that detect and log changes in forms.
-@receiver(pre_save, sender=Cohort)
-def teacher_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Cohort.objects.get(pk=instance.pk)
-        updates_logger.info(f"Школа \"{instance.mainTeacherID.schoolID}\" изменила учителя \"{unchanged.mainTeacherID}\" на учителя \"{instance.mainTeacherID}\" у класса \"{instance.class_name}\".")
+#@receiver(pre_save, sender=Cohort)
+#def teacher_obj_update(sender, instance, **kwargs):
+#    if not instance._state.adding:
+#        unchanged = Cohort.objects.get(pk=instance.pk)
+#        updates_logger.info(f"Школа \"{instance.mainTeacherID.schoolID}\" изменила учителя \"{unchanged.mainTeacherID}\" на учителя \"{instance.mainTeacherID}\" у класса \"{instance.class_name}\".")
 
-@receiver(pre_save, sender=Subject)
-def subject_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
-        unchanged = Subject.objects.get(pk=instance.pk)
-        updates_logger.info(f"Учитель \"{instance.teacherID.teacherName}\" изменил УРОК \"{instance.cohortID.class_name}\" класса с \"{unchanged.subjectName}\" на \'{instance.subjectName}\'.")
+#@receiver(pre_save, sender=Subject)
+#def subject_obj_update(sender, instance, **kwargs):
+#    if not instance._state.adding:
+#        unchanged = Subject.objects.get(pk=instance.pk)
+#        updates_logger.info(f"Учитель \"{instance.teacherID.teacherName}\" изменил УРОК \"{instance.cohortID.class_name}\" класса с \"{unchanged.subjectName}\" на \'{instance.subjectName}\'.")
 
-@receiver(pre_save, sender=Timetable)
-def time_tbl_obj_update(sender, instance, **kwargs):
-    if not instance._state.adding:
+#@receiver(pre_save, sender=Timetable)
+#def time_tbl_obj_update(sender, instance, **kwargs):
+#    if not instance._state.adding:
 
-        unchanged = Timetable.objects.get(pk=instance.pk)
+#        unchanged = Timetable.objects.get(pk=instance.pk)
 
-        if unchanged.teacher != instance.teacher and unchanged.subjectID.subjectName == instance.subjectID.subjectName:
-            updates_logger.info(f"Учитель по \"{instance.subjectID.subjectName}\" \"{instance.subjectID.cohortID.class_name}\" класса на \"{instance.date}\" с \"{instance.startTime}\" до \"{instance.endTime}\" был изменён с \"{unchanged.teacher}\" на \"{instance.teacher}\".")
+#        if unchanged.teacher != instance.teacher and unchanged.subjectID.subjectName == instance.subjectID.subjectName:
+#            updates_logger.info(f"Учитель по \"{instance.subjectID.subjectName}\" \"{instance.subjectID.cohortID.class_name}\" класса на \"{instance.date}\" с \"{instance.startTime}\" до \"{instance.endTime}\" был изменён с \"{unchanged.teacher}\" на \"{instance.teacher}\".")
 
-        if unchanged.teacher != instance.teacher and unchanged.subjectID.subjectName != instance.subjectID.subjectName:
-            updates_logger.info(f"Учитель для \"{instance.subjectID.subjectName}\" был изменён с \"{unchanged.teacher}\" на \"{instance.teacher}\", РАСПИСАНИЕ \"{instance.subjectID.cohortID.class_name}\" класса было измененно с \"{unchanged.subjectID.subjectName}\" на \'{instance.subjectID.subjectName}\'.")
+#        if unchanged.teacher != instance.teacher and unchanged.subjectID.subjectName != instance.subjectID.subjectName:
+#            updates_logger.info(f"Учитель для \"{instance.subjectID.subjectName}\" был изменён с \"{unchanged.teacher}\" на \"{instance.teacher}\", РАСПИСАНИЕ \"{instance.subjectID.cohortID.class_name}\" класса было измененно с \"{unchanged.subjectID.subjectName}\" на \'{instance.subjectID.subjectName}\'.")
 
-        else:
-            updates_logger.info(f"Учитель \"{instance.subjectID.teacherID.teacherName}\" изменил РАСПИСАНИЕ класса \"{instance.subjectID.cohortID.class_name}\" с \"{unchanged.subjectID.subjectName}\" на \'{instance.subjectID.subjectName}\'.")
+#        else:
+#            updates_logger.info(f"Учитель \"{instance.subjectID.teacherID.teacherName}\" изменил РАСПИСАНИЕ класса \"{instance.subjectID.cohortID.class_name}\" с \"{unchanged.subjectID.subjectName}\" на \'{instance.subjectID.subjectName}\'.")
 
 
-@receiver(pre_save, sender=regularGrade)
+#@receiver(pre_save, sender=regularGrade)
 def regularGrades_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
         unchanged = regularGrade.objects.get(pk=instance.pk)
         updates_logger.info(f"Учитель \"{instance.subjectID.teacherID.teacherName}\" изменил ОБЫЧНУЮ-оценку урока \"{instance.lesson.subjectID.subjectName}\" ученика \"{instance.studentID}\" c \"{unchanged.mark}\" на \'{instance.mark}\'.")
 
-@receiver(pre_save, sender=finalGrade)
+#@receiver(pre_save, sender=finalGrade)
 def finalGrades_tbl_obj_update(sender, instance, **kwargs):
     if not instance._state.adding:
         unchanged = finalGrade.objects.get(pk=instance.pk)
@@ -447,18 +447,18 @@ def finalGrades_tbl_obj_update(sender, instance, **kwargs):
 
 
 
-@receiver(pre_delete, sender=Subject)
+#@receiver(pre_delete, sender=Subject)
 def subject_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f"Учитель \"{instance.teacherID.teacherName}\" удалил УРОК \"{instance.subjectName}\" у \"{instance.cohortID.class_name}\" класса.")
 
-@receiver(pre_delete, sender=Timetable)
+#@receiver(pre_delete, sender=Timetable)
 def time_tbl_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" удалил с РАСПИСАНИЯ урок \"{instance.subjectID.subjectName}\" на \"{instance.date}\" с \"{instance.startTime}\" до \"{instance.endTime}\" у \"{instance.cohortID.class_name}\" класса.')
 
-@receiver(pre_delete, sender=regularGrade)
+#@receiver(pre_delete, sender=regularGrade)
 def regularGrades_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" удалил ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученика \"{instance.studentID.studentName}\"')
 
-@receiver(pre_delete, sender=finalGrade)
+#@receiver(pre_delete, sender=finalGrade)
 def finalGrades_obj_remove(sender, instance, **kwargs):
     deletions_logger.info(f'Учитель \"{instance.subjectID.teacherID.teacherName}\" удалил ГОДОВУЮ-ОЦЕНКУ \"{instance.mark}\" за \"{instance.type}\" ученика \"{instance.studentID.studentName}\".')

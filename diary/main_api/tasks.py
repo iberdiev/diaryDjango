@@ -4,9 +4,16 @@ from django.core.mail import send_mail
 import datetime, requests
 from . import models
 
+#@shared_task
+#def sendEmailToSetPassword(email, code):
+#    send_mail('Hello from Iskender.', str(code), 'onlinediaryputinbyte@yandex.ru', [email], fail_silently=False)
+
 @shared_task
-def sendEmailToSetPassword(email, code):
-    send_mail('Hello from Iskender.', str(code), 'onlinediaryputinbyte@yandex.ru', [email], fail_silently=False)
+def sendEmailToSetPassword():
+    send_mail('Hello from Iskender.', str(4567890), 'onlinediaryputinbyte@yandex.ru', ['iskender.berdiev@gmail.com'], fail_silently=False)
+
+
+
 
 # @shared_task
 # def periodicPrintHelloWorld():
@@ -28,7 +35,9 @@ def duplicateTodaysLessonsToNextWeek():
 @shared_task
 def synchronizationWithJKitepDB():
     lastChangeID = str(models.LastChangeInJkitepModtrackerBasic.objects.last().id)
+    print(lastChangeID)
     changes = models.JkitepModtrackerBasic.objects.raw("SELECT * FROM `jkitep_modtracker_basic` WHERE id > "+ lastChangeID)
+    print(len(changes))
     for change in changes:
         changeID = str(change.id)
         if change.module == "Schools":
@@ -44,7 +53,7 @@ def synchronizationWithJKitepDB():
                         "user_role": 1,
                         "password1":username,
                         "password2":username}
-                a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
+                a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/registration/", data = data)
                 models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
             elif change.status == 0:
                 print(change.id, "- School has been altered")
@@ -78,7 +87,7 @@ def synchronizationWithJKitepDB():
                         "user_role": 2,
                         "password1":username,
                         "password2":username}
-                a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
+                a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/registration/", data = data)
                 schoolID = models.CustomUser.objects.get(username=schoolUsername)
                 teacherID = models.CustomUser.objects.get(username=username)
                 if not models.CustomUser.objects.filter(username=teacherID).exists():
@@ -125,7 +134,7 @@ def synchronizationWithJKitepDB():
                         "mainTeacherID": mainTeacherID,
                         "schoolID": schoolID,
                         "jkitepClassID": jkitepClassID}
-                a = requests.post(url = "http://127.0.0.1:8080/api/v1/get_cohorts/", data = data)
+                a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/get_cohorts/", data = data)
                 print(change.id, "- Cohort has been created")
                 models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
             elif change.status == 0:
@@ -165,10 +174,10 @@ def synchronizationWithJKitepDB():
                 if models.CustomUser.objects.filter(username=parentUsername).exists():
                     parentID = models.CustomUser.objects.get(username=parentUsername)
                     data = {"studentName": studentName,"cohort": cohortID,"parent": parentID}
-                    a = requests.post(url = "http://127.0.0.1:8080/api/v1/students/", data = data)
+                    a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/students/", data = data)
                 else:
                     data = {"studentName": studentName,"cohort": cohortID, "parent": ""}
-                    a = requests.post(url = "http://127.0.0.1:8080/api/v1/students/", data = data)
+                    a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/students/", data = data)
                 print(change.id, "- Student has been created")
                 models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
             elif change.status == 0:
@@ -205,7 +214,7 @@ def synchronizationWithJKitepDB():
                         "user_role": 3,
                         "password1":parentUsername,
                         "password2":parentUsername}
-                a = requests.post(url = "http://127.0.0.1:8080/api/v1/registration/", data = data)
+                a = requests.post(url = "http://diary.putinbyte.com:8000/api/v1/registration/", data = data)
                 print(change.id, "- Parent has been created")
                 models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
             elif change.status == 0:
@@ -223,3 +232,4 @@ def synchronizationWithJKitepDB():
                 print(change.id, "- Parent has been deleted")
                 models.LastChangeInJkitepModtrackerBasic.objects.create(id=change.id)
     return print("Done synchronization with JKitep DB")
+
