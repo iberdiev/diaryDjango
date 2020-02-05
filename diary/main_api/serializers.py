@@ -186,8 +186,7 @@ class StudentGradesOneSubjectSerializer(serializers.ModelSerializer):
         fields = ('studentName','pk','cohort','regularGrades',)
     def get_regularGrades(self, student):
         # print(datetime.today()- datetime.timedelta(days=13))
-        today = datetime.today().day
-        grades = models.regularGrade.objects.filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__day__lte=today)
+        grades = models.regularGrade.objects.filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__lte=datetime.today())
         serializer = RegularGradesBySubjectSerializer(instance=grades, many=True)
         return serializer.data
 
