@@ -260,7 +260,7 @@ class CohortRegularGradesOneSubjectView(APIView):
         subjectID = self.request.query_params.get('subjectID')
         gradeType = self.request.query_params.get('type')
         data = serializers.StudentGradesOneSubjectSerializer(student, many=True, context={"subjectID": subjectID, "type":gradeType}).data
-        timetable = models.Timetable.objects.filter(subjectID=1, date__lte=datetime.today())
+        timetable = models.Timetable.objects.filter(subjectID=subjectID, date__lte=datetime.today())
         timetables = serializers.TimetableSerializer(timetable, many=True).data
         return Response({"grades": data, "timetables": timetables})
         # filter(studentID=student,lesson__subjectID=self.context["subjectID"],type=6, lesson__date__day__lte=today)
