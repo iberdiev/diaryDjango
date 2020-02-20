@@ -154,38 +154,19 @@ class CohortsView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class CustomLoginView(ObtainAuthToken):
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.serializer_class(data=request.data,
-#                                            context={'request': request})
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.validated_data['user']
-#         token, created = Token.objects.get_or_create(user=user)
-#         return Response({
-#             'token': token.key,
-#             'user_role': user.user_role,
-#             'name': user.name,
-#         })
-
 class CustomLoginView(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        if int(request.data["type"]) == 0:
-            user = models.CustomUser.objects.filter(email=request.data["info"])
-        elif int(request.data["type"]) == 1:
-            user = models.CustomUser.objects.filter(phoneNumber=request.data["info"])
-        if len(user) == 1:
-            if user[0].check_password(request.data["password"]):
-                token, created = Token.objects.get_or_create(user=user[0])
-                return Response({
-                    'token': token.key, 
-                    'user_role': user[0].user_role,
-                    'name': user[0].name,
-                })
-            else:
-                return Response("Wrong password.")
-        else:
-            return Response("There is no such user.")
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_role': user.user_role,
+            'name': user.name,
+        })
 
 @permission_classes((IsAuthenticated, ))
 class MainCohortList(APIView):
@@ -245,7 +226,7 @@ class RegularGradesListView(APIView):
     def get(self, request):
         date = self.request.query_params.get('date')
         student = self.request.query_params.get('studentID')
-        grades = models.regularGrade.objects.filter(studentID = student)
+=====+        grades = models.regularGrade.objects.filter(studentID = student)
         data = serializers.RegularGradeSerializer(grades, many=True).data
         return Response(data)
 # http://127.0.0.1:8080/api/v1/regularGrades/?date=2020-01-12&studentID=22
@@ -507,17 +488,14 @@ class ForgotThePassword(APIView):
                 return Response(user[0].username)
             else:
                 return Response("There is no user with sent email.")
-        elif int(way) == 1:
-            user = models.CustomUser.objects.filter(phoneNumber = info)
-
-            if len(user) == 1:
-                r = requests.get("http://putinbyte.ddns.net:3000/api/request/0{}".format(user[0].phoneNumber[3:]), headers={"X-AUTH-TOKEN": "UFzwQZMugSrMxCd7yW9PfNVX"}).json()
-                user[0].codeToResetPassword = int(r["data"]["gateway"]["phone"][6:])
-                user[0].save()
-                return Response(user[0].username)
-            else:
-                return Response("There is no user with sent phone number.")
-            return Response(data)
+        # elif int(way) == 1:
+        #     user = models.CustomUser.objects.filter(phoneNumber = info)
+        #     if len(user) == 1:
+        #         print('asdfasdf')
+        #         requests.get("http://127.0.0.1:8000/api/v1/callToNumber/?username={}".format(user[0].username)).json()
+        #     else:
+        #         return Response("There is no user with sent phone number.")
+        #     return Response(data)
 
     def post(self, request):
         user = models.CustomUser.objects.get(username=request.data["username"])

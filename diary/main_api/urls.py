@@ -34,8 +34,8 @@ urlpatterns = [
     path('callToNumber/', views.CallToNumber.as_view()),
     path('getStatisticsForStudent/', views.GetStatisticsForStudent.as_view()),
     path('getTeacherDetails/', views.GetTeacherDetails.as_view()),
-
     path('loginViaJKitep/', views.LoginViaJKitep.as_view()),
+    path('forgotThePassword/', views.ForgotThePassword.as_view()),
     ]
 
 

@@ -4,15 +4,9 @@ from django.core.mail import send_mail
 import datetime, requests
 from . import models
 
-#@shared_task
-#def sendEmailToSetPassword(email, code):
-#    send_mail('Hello from Iskender.', str(code), 'onlinediaryputinbyte@yandex.ru', [email], fail_silently=False)
-
 @shared_task
-def sendEmailToSetPassword():
-    send_mail('Hello from Iskender.', str(4567890), 'onlinediaryputinbyte@yandex.ru', ['iskender.berdiev@gmail.com'], fail_silently=False)
-
-
+def sendEmailToSetPassword(email, code):
+    send_mail('Код для сброса пароля.', str(code), 'onlinediaryputinbyte@yandex.ru', [email], fail_silently=False)
 
 
 # @shared_task
