@@ -1,4 +1,4 @@
-# School Diary Project
+# School Diary Project (back, Django)
 ###
 This project is done during 1 month of winter internship. With my fellows, we've tried to build an online gradebook. By the time we were working on this project, we didn't know that it's better to separate each module using django apps, so do not judge strictly.
 
